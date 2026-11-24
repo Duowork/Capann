@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { ArrowClockwise, ArrowSquareOut, Check, Copy, LinkSimple, Play, Timer } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowSquareOut, CheckCircle, Copy, Play, Timer } from '@phosphor-icons/react'
 import { ApiError, listLinks } from '@capann/api-client'
 import { RETENTION_DAYS } from '@capann/contract'
 import { API_URL } from '../premium/config.js'
 import { usePrivatePage } from '../premium/usePrivatePage.js'
-import { Card, Notice, PageHeading, PremiumLayout, SECONDARY_BUTTON, StatusLine } from '../premium/PremiumLayout.jsx'
+import { Lead, Notice, PageHeading, PremiumLayout, SECONDARY_BUTTON, StatusLine } from '../premium/PremiumLayout.jsx'
 import { RecordingPlayer } from '../premium/RecordingPlayer.jsx'
 
 // /view-my-links?token=… — link recovery, emailed from the side panel's
@@ -91,17 +91,14 @@ function useClock(intervalMs) {
   return now
 }
 
+/** Time left, as plain text: cream under a day. */
 function Countdown({ remainingMs }) {
   const expired = remainingMs <= 0
   const soon = !expired && remainingMs < DAY_MS
-  const tone = expired
-    ? 'border-border-hairline text-text-muted'
-    : soon
-      ? 'border-accent-cream/35 bg-accent-cream/10 text-hl-text'
-      : 'border-border-hairline-strong text-text-body'
+  const tone = soon ? 'text-hl-text' : 'text-muted'
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill border text-[12.5px] leading-none tabular-nums ${tone}`}>
-      <Timer size={14} weight="bold" aria-hidden="true" />
+    <span className={`inline-flex items-center gap-1.5 text-[13.5px] leading-none tabular-nums ${tone}`}>
+      <Timer size={16} weight="fill" aria-hidden="true" />
       {expired ? 'Expired' : formatRemaining(remainingMs)}
     </span>
   )
@@ -125,19 +122,21 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
     resetTimer.current = setTimeout(() => setCopyState(null), COPIED_MS)
   }
 
-  const smallButton = 'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-pill text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+  const smallButton =
+    'inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-full text-[13.5px] font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+  const softButton = 'bg-fg/[0.08] text-fg hover:bg-fg/[0.14]'
 
   return (
-    <li className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center p-5 sm:px-6 rounded-[22px] bg-surface-base border border-border-hairline">
+    <li className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center py-6 border-b border-line">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <span id={labelId} className="text-[15.5px] font-medium text-text-primary">
+          <span id={labelId} className="text-[16px] font-medium text-fg">
             <span className="sr-only">Recording uploaded </span>
             <time dateTime={item.uploadedAt}>{uploaded}</time>
           </span>
           <Countdown remainingMs={remainingMs} />
         </div>
-        <div className="flex items-center gap-2 mt-2 text-[13px] text-text-muted min-w-0">
+        <div className="flex items-center gap-2 mt-2 text-[13.5px] text-muted min-w-0">
           {size && (
             <>
               <span className="flex-none tabular-nums">{size}</span>
@@ -154,27 +153,25 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
             type="button"
             onClick={() => onPlay(item)}
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none font-medium bg-accent-violet text-ink hover:bg-accent-violet-hover`}
+            className={`${smallButton} flex-1 sm:flex-none bg-draw text-ink hover:bg-draw-hover`}
           >
-            <Play size={15} weight="fill" aria-hidden="true" />
+            <Play size={16} weight="fill" aria-hidden="true" />
             Play
           </button>
           <button
             type="button"
             onClick={handleCopy}
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none min-w-[118px] font-medium ${
-              copyState === 'copied' ? 'bg-accent-mint text-save-ink' : 'border border-border-hairline-strong text-text-primary hover:bg-surface-elevated'
-            }`}
+            className={`${smallButton} flex-1 sm:flex-none sm:min-w-[118px] ${copyState === 'copied' ? 'bg-rec text-save-ink' : softButton}`}
           >
             {copyState === 'copied' ? (
               <>
-                <Check size={15} weight="bold" aria-hidden="true" />
+                <CheckCircle size={16} weight="fill" aria-hidden="true" />
                 Copied
               </>
             ) : (
               <>
-                <Copy size={15} weight="bold" aria-hidden="true" />
+                <Copy size={16} weight="fill" aria-hidden="true" />
                 {copyState === 'failed' ? 'Copy failed' : 'Copy link'}
               </>
             )}
@@ -184,10 +181,10 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none border border-border-hairline-strong text-text-primary hover:bg-surface-elevated`}
+            className={`${smallButton} flex-1 sm:flex-none ${softButton}`}
           >
+            <ArrowSquareOut size={16} weight="fill" aria-hidden="true" />
             Open
-            <ArrowSquareOut size={15} weight="bold" aria-hidden="true" />
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
         </div>
@@ -202,7 +199,7 @@ function LinkList({ items, skewMs, onCopied }) {
   const [playing, setPlaying] = useState(null)
   return (
     <>
-      <ul className="flex flex-col gap-3 mt-8 mb-0 p-0 list-none">
+      <ul className="mt-10 mb-0 p-0 list-none border-t border-line">
         {items.map((item) => (
           <LinkRow
             key={item.id}
@@ -275,14 +272,10 @@ export default function ViewMyLinksPage() {
   if (!token) {
     return (
       <PremiumLayout>
-        <Card>
-          <PageHeading>
-            YOUR <span className="text-accent">LINKS</span>
-          </PageHeading>
-          <Notice tone="error" role="alert" title="This page needs the link from your email">
-            Request a new one from Capann’s side panel (Lost a link?).
-          </Notice>
-        </Card>
+        <PageHeading>Your links</PageHeading>
+        <Notice tone="error" role="alert" title="This page needs the link from your email">
+          Request a new one from Capann’s side panel (Lost a link?).
+        </Notice>
       </PremiumLayout>
     )
   }
@@ -290,24 +283,24 @@ export default function ViewMyLinksPage() {
   const ready = state.status === 'ready'
   const items = ready && Array.isArray(state.data.items) ? state.data.items : []
   const days = ready ? retentionDays(state.data.retentionSeconds) : RETENTION_DAYS
+  const email = ready && <strong className="font-medium text-fg wrap-anywhere">{state.data.email}</strong>
 
   return (
     <PremiumLayout wide>
-      {ready ? (
-        <>
-          <PageHeading>
-            Links for <span className="text-accent">{state.data.email}</span>
-          </PageHeading>
-          {items.length > 0 && (
-            <p className="mt-5 mb-0 text-[16px] leading-[1.7] text-text-body">
-              {items.length} live {items.length === 1 ? 'link' : 'links'}, newest first. Shared recordings stay up for {days} days.
-            </p>
+      <PageHeading>Your links</PageHeading>
+      {ready && (
+        <Lead>
+          {items.length > 0 ? (
+            <>
+              {items.length} live {items.length === 1 ? 'link' : 'links'} for {email}, newest first. Shared recordings stay up for{' '}
+              {days} days.
+            </>
+          ) : (
+            <>
+              No live links for {email}. Shared recordings stay up for {days} days.
+            </>
           )}
-        </>
-      ) : (
-        <PageHeading>
-          YOUR <span className="text-accent">LINKS</span>
-        </PageHeading>
+        </Lead>
       )}
 
       <StatusLine busy quiet={state.status !== 'loading'}>
@@ -326,7 +319,7 @@ export default function ViewMyLinksPage() {
             title="Couldn’t load your links"
             actions={
               <button type="button" onClick={retry} className={SECONDARY_BUTTON}>
-                <ArrowClockwise size={16} weight="bold" aria-hidden="true" />
+                <ArrowClockwise size={17} weight="fill" aria-hidden="true" />
                 Try again
               </button>
             }
@@ -334,15 +327,6 @@ export default function ViewMyLinksPage() {
             {state.message || 'Something went wrong. Try again in a moment.'}
           </Notice>
         ))}
-
-      {ready && items.length === 0 && (
-        <div className="flex flex-col items-center gap-4 mt-10 px-6 py-14 rounded-panel border border-dashed border-border-hairline-strong text-center">
-          <LinkSimple size={30} weight="bold" aria-hidden="true" className="text-text-muted" />
-          <p className="m-0 max-w-[36ch] text-[15.5px] leading-[1.65] text-text-body">
-            No live links. Shared recordings stay up for {days} days.
-          </p>
-        </div>
-      )}
 
       {ready && items.length > 0 && <LinkList items={items} skewMs={state.skewMs} onCopied={announce} />}
     </PremiumLayout>

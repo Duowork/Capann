@@ -35,7 +35,7 @@ export default function SiteFooter() {
       <div className="grid gap-12 py-16 md:grid-cols-[1fr_auto]">
         <Link to="/" aria-label="Capann home" className="flex items-center gap-2.5 self-start w-fit">
           <img src={`${BASE}svg/capann-icon-light.svg`} alt="" className="on-dark w-[26px] h-[26px]" />
-            <img src={`${BASE}svg/capann-icon-dark.svg`} alt="" className="on-light w-[26px] h-[26px]" />
+          <img src={`${BASE}svg/capann-icon-dark.svg`} alt="" className="on-light w-[26px] h-[26px]" />
           <span className="font-display font-bold text-[25px] leading-none tracking-[0.03em]">
             CAPA<span className="text-accent">NN</span>
           </span>

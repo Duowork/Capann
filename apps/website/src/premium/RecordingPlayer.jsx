@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowSquareOut, X } from '@phosphor-icons/react'
+import { ArrowSquareOut, XCircle } from '@phosphor-icons/react'
 
 // Session playback (Premium): "Play" on /view-my-links opens the recording in
 // this modal, in a plain HTML5 <video> streamed from the link itself (the API
@@ -12,7 +12,7 @@ import { ArrowSquareOut, X } from '@phosphor-icons/react'
 // (apps/extension/src/sidepanel/player-dialog.tsx) does the same.
 
 const ICON_BUTTON =
-  'inline-flex items-center justify-center w-10 h-10 flex-none rounded-pill border border-border-hairline-strong text-text-primary transition-colors hover:bg-surface-elevated focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+  'inline-flex items-center justify-center w-10 h-10 flex-none rounded-full text-muted transition-colors hover:bg-fg/[0.08] hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
 
 export function RecordingPlayer({ item, title, onClose }) {
   const dialogRef = useRef(null)
@@ -59,17 +59,17 @@ export function RecordingPlayer({ item, title, onClose }) {
       onClick={(event) => {
         if (event.target === event.currentTarget) event.currentTarget.close()
       }}
-      className="w-[min(100vw-24px,960px)] max-w-none max-h-[calc(100dvh-24px)] m-auto p-4 sm:p-5 rounded-panel bg-surface-base border border-border-hairline-strong text-text-primary shadow-[var(--shadow-float)] backdrop:bg-canvas/80 backdrop:backdrop-blur-sm"
+      className="w-[min(100vw-24px,960px)] max-w-none max-h-[calc(100dvh-24px)] m-auto p-4 sm:p-5 rounded-panel bg-panel text-fg shadow-[var(--shadow-float)] backdrop:bg-canvas/80 backdrop:backdrop-blur-sm"
     >
       <div className="flex items-center gap-3 mb-4">
         <h2 id={titleId} className="flex-1 min-w-0 m-0 text-[15.5px] font-medium truncate">
           {title}
         </h2>
         <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label="Open in a new tab" title="Open in a new tab" className={ICON_BUTTON}>
-          <ArrowSquareOut size={17} weight="bold" aria-hidden="true" />
+          <ArrowSquareOut size={21} weight="fill" aria-hidden="true" />
         </a>
         <button type="button" autoFocus aria-label="Close" title="Close" onClick={() => dialogRef.current?.close()} className={ICON_BUTTON}>
-          <X size={17} weight="bold" aria-hidden="true" />
+          <XCircle size={26} weight="fill" aria-hidden="true" />
         </button>
       </div>
       {failed ? (
@@ -86,7 +86,7 @@ export function RecordingPlayer({ item, title, onClose }) {
           onDurationChange={fixDuration}
           onTimeUpdate={fixDuration}
           onError={() => setFailed(true)}
-          className="block w-full max-h-[72dvh] rounded-[18px] bg-canvas"
+          className="block w-full max-h-[72dvh] rounded-[18px] bg-ink"
         />
       )}
     </dialog>

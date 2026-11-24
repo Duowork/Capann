@@ -33,8 +33,12 @@ function SectionLink({ id, onLanding, onNavigate, className, children }) {
  * transparent at the top of the page and turns into a frosted pill once the
  * page scrolls. Section links stay on the landing page there and lead back to
  * it from the other pages, where LandingPage scrolls to the section on arrival.
+ *
+ * `minimal` is the Premium pages' version (/verify, /view-my-links, /upgraded):
+ * people arrive there from an email to finish one task, so it has only the
+ * logo, "Back to site", and the theme toggle.
  */
-export default function SiteHeader() {
+export default function SiteHeader({ minimal = false }) {
   const { pathname } = useLocation()
   const onLanding = pathname === '/'
   const [scrolled, setScrolled] = useState(false)
@@ -93,71 +97,84 @@ export default function SiteHeader() {
           className="flex items-center gap-2 md:gap-3 mr-auto rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
         >
           <img src={`${BASE}svg/capann-icon-light.svg`} alt="" className="on-dark w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
-            <img src={`${BASE}svg/capann-icon-dark.svg`} alt="" className="on-light w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
+          <img src={`${BASE}svg/capann-icon-dark.svg`} alt="" className="on-light w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
           <span className="font-display font-bold text-[23px] md:text-[29px] leading-none tracking-[0.03em]">
             CAPA<span className="text-accent">NN</span>
           </span>
           <span className="sr-only">Capann home</span>
         </Link>
-        <div className="hidden md:flex items-center gap-7">
-          {SECTIONS.map(([label, id]) => (
-            <SectionLink key={id} id={id} {...linkProps} className="text-[13.5px] text-muted hover:text-fg transition-colors">
-              {label}
-            </SectionLink>
-          ))}
-          <Link
-            to="/playground"
-            aria-current={pathname === '/playground' ? 'page' : undefined}
-            className={`text-[13.5px] transition-colors hover:text-fg ${pathname === '/playground' ? 'text-fg' : 'text-muted'}`}
-          >
-            Playground
-          </Link>
-        </div>
-        <ThemeToggle className="-mr-1 md:-mr-3" />
-        <SectionLink id="pricing" {...linkProps} className={`${PRIMARY} px-4 md:px-5 py-2 md:py-2.5 text-[13.5px]`}>
-          Get Capann<span className="hidden sm:inline">&nbsp;free</span>
-        </SectionLink>
-        <button
-          type="button"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="site-mobile-menu"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="md:hidden inline-flex h-9 w-9 flex-none cursor-pointer items-center justify-center rounded-full bg-transparent text-fg transition-colors hover:bg-fg/[0.08]"
-        >
-          {menuOpen ? <X size={22} weight="fill" aria-hidden="true" /> : <List size={22} weight="fill" aria-hidden="true" />}
-        </button>
-      </nav>
-      <div
-        id="site-mobile-menu"
-        aria-hidden={!menuOpen}
-        inert={!menuOpen}
-        className={`md:hidden max-w-[1280px] mx-auto grid overflow-hidden transition-[grid-template-rows,opacity] duration-morph ease-morph motion-reduce:transition-none ${
-          menuOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-        }`}
-      >
-        <div className="min-h-0">
-          <nav aria-label="Mobile" className="mt-2 rounded-[22px] glass p-2 shadow-[var(--shadow-float)]">
-            {SECTIONS.map(([label, id]) => (
-              <SectionLink
-                key={id}
-                id={id}
-                {...linkProps}
-                className="flex items-center rounded-2xl px-4 py-3 text-[14px] text-body transition-colors hover:bg-fg/5 hover:text-fg"
-              >
-                {label}
-              </SectionLink>
-            ))}
-            <Link
-              to="/playground"
-              onClick={close}
-              className="flex items-center rounded-2xl px-4 py-3 text-[14px] text-fg transition-colors hover:bg-fg/5"
-            >
-              Playground
+        {minimal ? (
+          <>
+            <Link to="/" className="text-[13.5px] text-muted hover:text-fg transition-colors">
+              Back to site
             </Link>
-          </nav>
+            <ThemeToggle className="-mr-1 md:-mr-3" />
+          </>
+        ) : (
+          <>
+            <div className="hidden md:flex items-center gap-7">
+              {SECTIONS.map(([label, id]) => (
+                <SectionLink key={id} id={id} {...linkProps} className="text-[13.5px] text-muted hover:text-fg transition-colors">
+                  {label}
+                </SectionLink>
+              ))}
+              <Link
+                to="/playground"
+                aria-current={pathname === '/playground' ? 'page' : undefined}
+                className={`text-[13.5px] transition-colors hover:text-fg ${pathname === '/playground' ? 'text-fg' : 'text-muted'}`}
+              >
+                Playground
+              </Link>
+            </div>
+            <ThemeToggle className="-mr-1 md:-mr-3" />
+            <SectionLink id="pricing" {...linkProps} className={`${PRIMARY} px-4 md:px-5 py-2 md:py-2.5 text-[13.5px]`}>
+              Get Capann<span className="hidden sm:inline">&nbsp;free</span>
+            </SectionLink>
+            <button
+              type="button"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={menuOpen}
+              aria-controls="site-mobile-menu"
+              onClick={() => setMenuOpen((open) => !open)}
+              className="md:hidden inline-flex h-9 w-9 flex-none cursor-pointer items-center justify-center rounded-full bg-transparent text-fg transition-colors hover:bg-fg/[0.08]"
+            >
+              {menuOpen ? <X size={22} weight="fill" aria-hidden="true" /> : <List size={22} weight="fill" aria-hidden="true" />}
+            </button>
+          </>
+        )}
+      </nav>
+      {!minimal && (
+        <div
+          id="site-mobile-menu"
+          aria-hidden={!menuOpen}
+          inert={!menuOpen}
+          className={`md:hidden max-w-[1280px] mx-auto grid overflow-hidden transition-[grid-template-rows,opacity] duration-morph ease-morph motion-reduce:transition-none ${
+            menuOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          }`}
+        >
+          <div className="min-h-0">
+            <nav aria-label="Mobile" className="mt-2 rounded-[22px] glass p-2 shadow-[var(--shadow-float)]">
+              {SECTIONS.map(([label, id]) => (
+                <SectionLink
+                  key={id}
+                  id={id}
+                  {...linkProps}
+                  className="flex items-center rounded-2xl px-4 py-3 text-[14px] text-body transition-colors hover:bg-fg/5 hover:text-fg"
+                >
+                  {label}
+                </SectionLink>
+              ))}
+              <Link
+                to="/playground"
+                onClick={close}
+                className="flex items-center rounded-2xl px-4 py-3 text-[14px] text-fg transition-colors hover:bg-fg/5"
+              >
+                Playground
+              </Link>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   )
 }

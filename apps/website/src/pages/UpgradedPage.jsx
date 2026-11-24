@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ArrowClockwise, CheckCircle } from '@phosphor-icons/react'
+import { ArrowClockwise } from '@phosphor-icons/react'
 import { findExtension, refreshExtension } from '../premium/extension.js'
 import { usePrivatePage } from '../premium/usePrivatePage.js'
-import { Card, Notice, PageHeading, PremiumLayout, SECONDARY_BUTTON, StatusLine } from '../premium/PremiumLayout.jsx'
+import { DoneMark, Lead, Notice, PageHeading, PremiumLayout, SECONDARY_BUTTON, StatusLine } from '../premium/PremiumLayout.jsx'
 
 // /upgraded — the Bachs post-checkout redirect. Asks the extension to re-check
 // `paid` with the server. The payment webhook can land a few seconds after the
@@ -91,60 +91,48 @@ export default function UpgradedPage() {
   const paid = status === 'paid'
   const checkAgainButton = (
     <button type="button" onClick={checkAgain} className={SECONDARY_BUTTON}>
-      <ArrowClockwise size={16} weight="bold" aria-hidden="true" />
+      <ArrowClockwise size={17} weight="fill" aria-hidden="true" />
       Check again
     </button>
   )
 
   return (
     <PremiumLayout>
-      <Card>
-        {paid && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-rec-text" />}
-        <PageHeading>
-          {paid ? (
-            <>
-              PREMIUM IS <span className="text-rec-text">ACTIVE</span>
-            </>
-          ) : (
-            <>
-              FINISHING YOUR <span className="text-accent">UPGRADE</span>
-            </>
-          )}
-        </PageHeading>
-        <p className="mt-5 mb-0 text-[16px] leading-[1.7] text-text-body">
-          {paid
-            ? 'Stopping a recording now gives you a link. You can close this tab.'
-            : 'Thanks for upgrading. Capann is confirming your payment so recordings can be shared as links.'}
-        </p>
+      {paid && <DoneMark />}
+      <PageHeading>{paid ? 'Premium is active' : 'Finishing your upgrade'}</PageHeading>
+      <Lead>
+        {paid
+          ? 'Stopping a recording now gives you a link. You can close this tab.'
+          : 'Thanks for upgrading. Capann is confirming your payment so recordings can be shared as links.'}
+      </Lead>
 
-        <StatusLine busy quiet={status !== 'checking'}>
-          {SUMMARY[status]}
-        </StatusLine>
+      <StatusLine busy quiet={status !== 'checking'}>
+        {SUMMARY[status]}
+      </StatusLine>
 
-        {status === 'pending' && (
-          <Notice title="Your payment hasn’t reached Capann yet" actions={checkAgainButton}>
-            It usually arrives within a minute. Capann also checks again when you go back to the tab where you started.
-          </Notice>
-        )}
+      {status === 'pending' && (
+        <Notice title="Your payment hasn’t reached Capann yet" actions={checkAgainButton}>
+          It usually arrives within a minute. Capann also checks again when you go back to the tab where you started.
+        </Notice>
+      )}
 
-        {status === 'signed-out' && (
-          <Notice title="Capann isn’t signed in in this browser" actions={checkAgainButton}>
-            Sign in from Capann’s Record view with the email you used at checkout, and Premium will be there.
-          </Notice>
-        )}
+      {status === 'signed-out' && (
+        <Notice title="Capann isn’t signed in in this browser" actions={checkAgainButton}>
+          Sign in from Capann’s Record view with the email you used at checkout, and Premium will be there.
+        </Notice>
+      )}
 
-        {status === 'no-extension' && (
-          <Notice title="Couldn’t reach Capann Premium from this page" actions={checkAgainButton}>
-            Go back to the tab where you started checkout. Capann checks your upgrade when you return to it.
-          </Notice>
-        )}
+      {status === 'no-extension' && (
+        <Notice title="Couldn’t reach Capann Premium from this page" actions={checkAgainButton}>
+          Go back to the tab where you started checkout. Capann checks your upgrade when you return to it.
+        </Notice>
+      )}
 
-        {status === 'error' && (
-          <Notice tone="error" role="alert" title="Couldn’t check your upgrade" actions={checkAgainButton}>
-            {state.message || 'Capann didn’t answer as expected. Try again in a moment.'}
-          </Notice>
-        )}
-      </Card>
+      {status === 'error' && (
+        <Notice tone="error" role="alert" title="Couldn’t check your upgrade" actions={checkAgainButton}>
+          {state.message || 'Capann didn’t answer as expected. Try again in a moment.'}
+        </Notice>
+      )}
     </PremiumLayout>
   )
 }

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { ArrowClockwise, ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { ArrowClockwise } from '@phosphor-icons/react'
 import { ApiError, exchangeLoginToken } from '@capann/api-client'
 import { API_URL } from '../premium/config.js'
 import { ExtensionUnreachableError, findExtension, handOffSession } from '../premium/extension.js'
 import { usePrivatePage } from '../premium/usePrivatePage.js'
 import {
-  Card,
+  DoneMark,
   InstallLink,
+  Lead,
   Notice,
   PageHeading,
   PremiumLayout,
@@ -53,7 +54,7 @@ function InstallNotice({ extension, onCheckAgain }) {
     <>
       <InstallLink />
       <button type="button" onClick={onCheckAgain} className={SECONDARY_BUTTON}>
-        <ArrowClockwise size={16} weight="bold" aria-hidden="true" />
+        <ArrowClockwise size={17} weight="fill" aria-hidden="true" />
         Check again
       </button>
     </>
@@ -152,14 +153,10 @@ export default function VerifyPage() {
   if (!token) {
     return (
       <PremiumLayout>
-        <Card>
-          <PageHeading>
-            SIGN IN TO CAPA<span className="text-accent">NN</span>
-          </PageHeading>
-          <Notice tone="error" role="alert" title="This page needs the sign-in link from your email">
-            Open the link in the email Capann sent you, or request a new one from Capann’s Record view.
-          </Notice>
-        </Card>
+        <PageHeading>Sign in to Capann</PageHeading>
+        <Notice tone="error" role="alert" title="This page needs the sign-in link from your email">
+          Open the link in the email Capann sent you, or request a new one from Capann’s Record view.
+        </Notice>
       </PremiumLayout>
     )
   }
@@ -178,67 +175,54 @@ export default function VerifyPage() {
 
   return (
     <PremiumLayout>
-      <Card>
-        {done && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-rec-text" />}
-        <PageHeading>
-          {done ? (
-            <>
-              YOU’RE SIGNED <span className="text-rec-text">IN</span>
-            </>
-          ) : (
-            <>
-              SIGN IN TO CAPA<span className="text-accent">NN</span>
-            </>
-          )}
-        </PageHeading>
-        <p className="mt-5 mb-0 text-[16px] leading-[1.7] text-text-body">
-          {done ? (
-            <>
-              You’re signed in to Capann as{' '}
-              <strong className="font-medium text-text-primary wrap-anywhere">{phase.email}</strong>. You can close this tab.
-            </>
-          ) : (
-            'Continue to finish signing in to Capann in this browser. This link works once and expires 15 minutes after it was sent.'
-          )}
-        </p>
-
-        <StatusLine busy={busy || looking} quiet={done || !status}>
-          {status}
-        </StatusLine>
-
-        {done &&
-          (phase.paid ? (
-            <Notice tone="success">Premium is active — stopping a recording now gives you a link.</Notice>
-          ) : (
-            <Notice>Upgrade from Capann’s Record view to share recordings as links.</Notice>
-          ))}
-
-        {!done && !busy && extension && !ready && <InstallNotice extension={extension} onCheckAgain={checkAgain} />}
-
-        {phase.step === 'error' && (
-          <Notice tone="error" role="alert" title={spent ? 'Link expired' : 'Sign-in didn’t finish'}>
-            {phase.message}
-          </Notice>
+      {done && <DoneMark />}
+      <PageHeading>{done ? 'You’re signed in' : 'Sign in to Capann'}</PageHeading>
+      <Lead>
+        {done ? (
+          <>
+            You’re signed in to Capann as <strong className="font-medium text-fg wrap-anywhere">{phase.email}</strong>. You can
+            close this tab.
+          </>
+        ) : (
+          'Continue to finish signing in to Capann in this browser. This link works once and expires 15 minutes after it was sent.'
         )}
+      </Lead>
 
-        {!done && !spent && (ready || busy) && (
-          <div className="mt-8">
-            <button type="button" onClick={handleContinue} disabled={busy} className={`${PRIMARY_BUTTON} w-full sm:w-auto`}>
-              {busy ? (
-                <>
-                  <Spinner size={17} />
-                  Signing in…
-                </>
-              ) : (
-                <>
-                  {phase.step === 'error' ? 'Try again' : 'Continue to Capann'}
-                  <ArrowRight size={17} weight="bold" aria-hidden="true" />
-                </>
-              )}
-            </button>
-          </div>
-        )}
-      </Card>
+      <StatusLine busy={busy || looking} quiet={done || !status}>
+        {status}
+      </StatusLine>
+
+      {done &&
+        (phase.paid ? (
+          <Notice tone="success">Premium is active. Stopping a recording now gives you a link.</Notice>
+        ) : (
+          <Notice>Upgrade from Capann’s Record view to share recordings as links.</Notice>
+        ))}
+
+      {!done && !busy && extension && !ready && <InstallNotice extension={extension} onCheckAgain={checkAgain} />}
+
+      {phase.step === 'error' && (
+        <Notice tone="error" role="alert" title={spent ? 'Link expired' : 'Sign-in didn’t finish'}>
+          {phase.message}
+        </Notice>
+      )}
+
+      {!done && !spent && (ready || busy) && (
+        <div className="mt-8">
+          <button type="button" onClick={handleContinue} disabled={busy} className={`${PRIMARY_BUTTON} w-full sm:w-auto`}>
+            {busy ? (
+              <>
+                <Spinner size={17} />
+                Signing in…
+              </>
+            ) : phase.step === 'error' ? (
+              'Try again'
+            ) : (
+              'Continue to Capann'
+            )}
+          </button>
+        </div>
+      )}
     </PremiumLayout>
   )
 }
