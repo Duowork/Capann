@@ -541,6 +541,7 @@ To exercise Premium locally, run the API (`npm run api:dev -- --port 8799`, with
 
 ## Skills
 
+- **ai-slop-design** (`.agents/skills/ai-slop-design/SKILL.md`): Always use this skill when designing, building, restyling, or reviewing any web page or UI layout (the website in `apps/website/`, the extension's panels, the side panel) or its copy. It lists the patterns that make a design read as AI-generated (eyebrow labels, two-tone headlines, hero badges, card grids everywhere, borders plus shadows, decorative gradients and glows, animation everywhere, chatty copy, arrows on every link) and Capann's brand rules; run its checklist and fix every broken rule before showing a design. Break a rule only where the content genuinely needs it.
 - **react-js** (`.agents/skills/react-js/SKILL.md`, skill name `react-optimise-skill`): Always invoke this skill when writing, editing, reviewing, or debugging React code in this repo (`OverlayApp.tsx`, `shell.tsx`, `annotate-controls.tsx`, and any other `.tsx` component). Covers hook-rule violations, stale closures, missing `useEffect` cleanup, object/array identity bugs, unnecessary re-renders, and other React correctness/performance/quality checks to run before finalizing changes.
 
 ## Testing
