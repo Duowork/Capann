@@ -8,15 +8,17 @@ does two jobs from one in-page overlay:
 1. **Annotate** (Mark screen) — draw, highlight, write, point, zoom, and comment
    directly over any web page without modifying the underlying content. Its
    **Screenshot** tool selects an area, marks it up with the same tools on a
-   frozen image, frames it (background, padding, corners, shadow, border), then
-   copies or saves a PNG.
+   frozen image, frames it (background, padding, corners, shadow, border;
+   Premium), then copies or saves a PNG.
 2. **Record** — capture the current tab to a local WebM, optionally with a camera
    bubble, microphone, and tab audio, with the overlay and annotations hidden
    from the frames.
 
 The free features run entirely locally: no network calls, no accounts, no uploads. Premium
-(cloud links for recordings) is backed by a separate Cloudflare Worker in `apps/api/`; see
-[Premium Backend](#premium-backend) and [Premium Share Links](#premium-share-links).
+(a paid account) adds cloud links with playback, marks that scroll with the page, and
+screenshot styling; links are backed by a separate Cloudflare Worker in `apps/api/`. See
+[Premium Features](#premium-features), [Premium Backend](#premium-backend), and
+[Premium Share Links](#premium-share-links).
 
 ## Repository Layout
 
@@ -85,18 +87,21 @@ code and differ only in `capann.config.json`:
   `__CAPANN_EDITION__` (esbuild `define`). `--edition=free|premium` overrides it,
   which is what `npm run build:free` / `build:premium` and
   `watch:free` / `watch:premium` do. Use those on `dev` to test either edition.
-- Annotation and instant tab recording are free in every edition. Premium is
-  reserved for the browser-AI layer and shareable cloud links. Links are built
-  across the extension, `apps/api/`, and the website's `/verify`,
-  `/view-my-links`, and `/upgraded` pages (`apps/website/`). `src/shared/features.ts` derives `PREMIUM_ENABLED`
-  from the edition; gate Premium features on it in both the UI and the service
-  worker. The free build shows one teaser link to the pricing page and nothing
-  else.
-- `build.mjs` writes `dist/manifest.json` per edition: free is `manifest.json`
-  unchanged (it includes the side panel, whose Screenshot tab is free); premium
-  adds only `externally_connectable` for `siteUrl`. `capann.config.json` also holds
-  `apiUrl` and `siteUrl` (`--api-url=` / `--site-url=` override them), and only
-  the edition differs between branches.
+- Annotation, screenshots, and instant tab recording are free in every
+  edition. Premium is a **paid account in the premium build** and adds the
+  features in [Premium Features](#premium-features). Links are built across the
+  extension, `apps/api/`, and the website's `/verify`, `/view-my-links`, and
+  `/upgraded` pages (`apps/website/`). `src/shared/features.ts` derives
+  `PREMIUM_ENABLED` from the edition and `premiumActive(account)` from it plus
+  the account (signed in and paid); gate a Premium feature on `premiumActive` in
+  the UI and on `PREMIUM_ENABLED` in the service worker. The free build shows
+  one teaser link to the pricing page and nothing else.
+- `build.mjs` writes `dist/manifest.json` per edition from `manifest.json`:
+  premium adds `externally_connectable` for `siteUrl`; free drops the side
+  panel and the `sidePanel` permission (both of its tabs are Premium) and skips
+  the side panel bundle. `capann.config.json` also holds `apiUrl` and `siteUrl`
+  (`--api-url=` / `--site-url=` override them), and only the edition differs
+  between branches.
 - Land shared behavior on `dev` first, then merge `dev` into both edition
   branches. The only edition-specific change is `capann.config.json`; never
   hardcode an edition in source.
@@ -131,8 +136,8 @@ code and differ only in `capann.config.json`:
 ### Screenshot
 - **Screenshot tool** (tool id `screenshot`, last in the second tool row; not a chooser option): while it is active, drag a box over the page (Enter or **Whole screen** takes the visible area; Esc, **Cancel**, or clicking the tool again turns it off). It is not a capturing tool: `ScreenshotSelector` takes the pointer, under the canvases. Marks already on the page come along as editable copies. It is hidden during an annotated recording, since a screenshot can't open then
 - **Editor**: the screenshot is shown framed and scaled to fit, over a dark backdrop, with the normal annotation tools (minus laser, spotlight, and zoom). Its annotations are a separate document: nothing is persisted. Back returns to Mark screen with the page's own annotations untouched and the tool and draw mode from before Screenshot was chosen; Close closes Capann
-- **Frame style** lives in the side panel's Screenshot tab (**Style** opens it): background (11 presets, a custom color, or none = transparent), padding, corner radius, shadow, and border. It is a preference in `chrome.storage.local`, so the editor follows changes live and the next screenshot starts with it
-- **The style controls only work while a screenshot is open** in the window's active tab. Otherwise the tab shows "No screenshot open". The panel asks the page (`screenshot-editing-query`) when it opens or the active tab changes or reloads, and the page broadcasts `screenshot-editing` when its editor opens or closes (only on a change, so idle page loads never wake the worker). The page is the source of truth, so nothing can go stale
+- **Frame style (Premium)** lives in the side panel's Screenshot tab (**Style** opens it): background (11 presets, a custom color, or none = transparent), padding, corner radius, shadow, and border. It is a preference in `chrome.storage.local`, so the editor follows changes live and the next screenshot starts with it. Without Premium the editor and export use `PLAIN_SCREENSHOT_STYLE` (no frame); the free build has no Style button, and in the premium build an unpaid account sees Style with a lock and the Screenshot tab offers sign-in and upgrade instead
+- **The style controls only work while a screenshot is open** in the window's active tab (for a paid account). Otherwise the tab shows "No screenshot open". The panel asks the page (`screenshot-editing-query`) when it opens or the active tab changes or reloads, and the page broadcasts `screenshot-editing` when its editor opens or closes (only on a change, so idle page loads never wake the worker). The page is the source of truth, so nothing can go stale
 - **Copy** puts the framed PNG on the clipboard (secure pages only); **Save** downloads it. Both render at the capture's resolution through the same `drawFrame` as the preview
 
 ### Recording
@@ -144,8 +149,32 @@ code and differ only in `capann.config.json`:
 - **Status reporting**: The chip and the Chrome action badge/title show recording or paused state
 - **Non-blocking degradation**: Missing camera, microphone, or tab audio never blocks recording; unavailable inputs are reported in the Record view
 - **Explicit grant flow**: A visible extension page obtains camera/microphone permission, since offscreen documents cannot prompt
-- **Free in every edition**: recording is not gated. `PREMIUM_ENABLED` in `src/shared/features.ts` is reserved for the Premium layer (browser AI, shareable links)
+- **Free in every edition**: recording is not gated. Premium adds links with playback to it (see [Premium Features](#premium-features))
 - **Premium links**: a paid user's stop uploads the recording and copies its link instead of downloading; see [Premium Share Links](#premium-share-links)
+
+### Premium Features
+
+Premium = a paid account (signed in, `paid`) in the premium build
+(`premiumActive(account)`). The page re-checks `paid` when the panel opens and
+on window focus, so an upgrade in the checkout tab unlocks everything in place.
+
+| Feature | Without Premium | Code |
+|---|---|---|
+| **7-day shareable links**: stopping a recording uploads it and copies its link | Saved to the computer | [Premium Share Links](#premium-share-links) |
+| **Session playback**: **Play** on a link opens it in a modal HTML5 player (no watch page) | — | side panel Links tab (`src/sidepanel/player-dialog.tsx`), website `/view-my-links` (`apps/website/src/premium/RecordingPlayer.jsx`) |
+| **Scrolling marks**: annotations scroll with the page | Marks stay fixed on screen; after scrolling with marks, a one-time nudge in Mark screen (premium build only) | `page-space.ts`, the document space in `OverlayApp.tsx` |
+| **Screenshot styling**: background, padding, corners, shadow, border | Plain screenshot, no frame | `screenshot-style.ts`, `style-panel.tsx` |
+| **Browser AI** (future): page description, annotated page description, playback transcripts, playback summary with a call to action | — | not built |
+
+**Pricing.** Premium is $7/month (`PREMIUM_PRICE_LABEL`, the Bachs
+subscription). The website also shows **Pay-per-day** ($0.50 a day for 1–30
+days, so monthly stays the discount; at 30 days it offers the subscription
+instead). Pay-per-day is website only: nothing in the API or the extension can
+sell or grant it yet.
+
+Both players work around MediaRecorder's WebM having no duration (Chrome
+reports Infinity and can't seek): on metadata they seek far past the end once,
+then rewind and play.
 
 ## Keyboard Shortcuts
 
@@ -242,6 +271,17 @@ screenshot's marks never reach the tab's storage, and leaving the screenshot
 (Back/Close) restores the page's document. Any new path that writes `objects`
 or persists them must respect the parked state.
 
+**The document space.** Scrolling marks are Premium, so the page's document is
+in "page" space (scrolls with the page) or "screen" space (fixed on screen),
+stored with it (`TabAnnotationState.space`, absent = page). `page-space.ts`
+follows it (`setScrollWithPage`), and every mapping between annotations and the
+screen goes through `pageScroll()`, never `window.scrollX/Y` (the zoom lens
+snapshot is the one exception: it is a picture of the page). With Premium, a
+screen-space document moves into page space at once, every object and history
+entry shifted by the scroll so nothing jumps; without it, a page-space document
+keeps scrolling until it is empty. The switch is skipped while a screenshot
+holds the live document.
+
 A Premium share job (upload + "Save a copy?") starts only after the capture has
 ended and the overlay is visible again, so it never touches `captureHidden`.
 The chip is also separate: it must never reuse `captureHidden`, or the timer,
@@ -276,8 +316,9 @@ src/content/               Content script injected into tabs (React, Shadow DOM)
                            history, persistence, timer, mask (the largest file)
   recording-chip.tsx       Floating recording controls (timer, pause/resume, stop,
                            discard) and bottom-right camera preview in their own host
-  premium-panel.tsx        Record view's Premium pieces: account row, share card,
-                           "Save a copy?" dialog, free-build teaser
+  premium-panel.tsx        Premium pieces: account row (sign-in, upgrade; also in the
+                           side panel), share card, "Save a copy?" dialog, Mark
+                           screen's scroll nudge, free-build teaser
   shell.tsx                Shared draggable panel shell: header, Back/Close, positioning
   annotate-controls.tsx    Annotation controls rendered inside the shell (former Toolbar
                            body: tools, colors, size, head/fill/font/zoom options, timer,
@@ -289,7 +330,7 @@ src/content/               Content script injected into tabs (React, Shadow DOM)
   zoom-lens.ts             Zoom lens drawing (snapshot + vector annotations)
   screenshot.tsx           Screenshot selector, framed stage, full-resolution export
   page-space.ts            Page <-> viewport coordinates and canvas transforms for scrolling;
-                           image space for the screenshot editor
+                           screen space without Premium; image space for the screenshot editor
   icons.ts                 SVG path definitions for tool icons
 src/offscreen/
   offscreen.html           Offscreen document entry (loads the IIFE recorder bundle)
@@ -302,13 +343,14 @@ src/permissions/
   permissions.html         Visible one-time camera/microphone grant page (offscreen
                            documents cannot show permission prompts)
   permissions.ts           Requests each enabled device, then reports back
-src/sidepanel/             Side panel, every build: Screenshot style tab (style-panel.tsx);
-                           premium adds the Links tab (links-panel.tsx)
+src/sidepanel/             Side panel, premium build only: Screenshot style tab
+                           (style-panel.tsx; sign-in/upgrade without Premium), Links tab
+                           (links-panel.tsx) with playback (player-dialog.tsx)
 src/shared/
   types.ts                 Annotation types, tool ids, recording status/stages/error
                            codes, and the extension's message contracts (what crosses
                            to the API or website is re-exported from @capann/contract)
-  features.ts              Edition gate, API_URL / SITE_URL / PRICING_URL
+  features.ts              Edition gate, premiumActive(account), API_URL / SITE_URL / PRICING_URL
   screenshot-style.ts      Screenshot frame style: presets, storage, layout, drawFrame
   premium/store.ts         chrome.storage.local: session, copy preference, link history
                            (the API client itself is @capann/api-client)
@@ -341,6 +383,7 @@ under [Repository Layout](#repository-layout).
 **Canvas Architecture**:
 - Two overlapping HTML5 canvases injected into each tab, scaled by devicePixelRatio, **viewport-sized and fixed** (never page-sized — see `learn/canvas.md` for the memory cost)
 - Annotations are stored in **page coordinates** and scroll with the page: pointer input goes through `pagePoint`, drawing goes through `setPageTransform`, and a scroll listener redraws both layers (`src/content/page-space.ts`). Only window scroll is tracked. Laser, spotlight, and the zoom lens stay in screen space (`setScreenTransform`)
+- **Screen space (without Premium)**: the same functions ignore the scroll (`setScrollWithPage(false)`, `pageScroll()` = 0,0), so marks stay fixed on screen. The space is per document; see [the document space](#capture-invariant-do-not-break)
 - **Image space**: while a screenshot is edited, `setImageSpace` makes the same functions map to the screenshot's own pixels, shown scaled to fit. Composers position through `screenPoint` and scale with `spaceScale`, and comment placement keeps bubbles inside the image
 - Bottom canvas: persisted annotations; top canvas: current stroke/shape and selection frames
 - Top canvas only receives pointer events (`pointer-events: auto`) while a capturing tool is active, so the page stays usable otherwise
@@ -360,7 +403,7 @@ under [Repository Layout](#repository-layout).
 
 **PNG Export**: `savePng` captures through `captureTab` (hide the shadow host synchronously, wait two animation frames, capture, restore to `overlayVisible`), then draws annotations **exactly once** onto the screenshot, offset by the scroll via `setPageTransform`. The screenshot is annotation-free by construction; if the hide step is ever missing, the capture already contains the annotations and they get drawn a second time.
 
-**Storage**: `chrome.storage.session`, keyed by tab ID (`capann_tab_<id>`). Cleared on browser close and immediately on Clear. Preserve the "survives reload, not restart" behavior unless explicitly asked otherwise.
+**Storage**: `chrome.storage.session`, keyed by tab ID (`capann_tab_<id>`): `{ objects, space }`. Cleared on browser close and immediately on Clear. Preserve the "survives reload, not restart" behavior unless explicitly asked otherwise.
 
 **Message Passing**: typed boundaries, all discriminated unions in `src/shared/types.ts`:
 - `BackgroundToContentMessage` / `ContentToBackgroundMessage`
@@ -471,9 +514,10 @@ The drag position is owned by `OverlayApp`, not the shell. Each view mounts a di
 4. **Color swatches**: `#EF4444`, `#0A0A0C`, `#FACC15`, `#22C55E`, `#FFFFFF`, plus a custom color picker. Active swatch gets a ring in `--text-primary`.
 5. **Size slider**: track `rgba(255,255,255,0.12)`, fill `--accent-violet`.
 6. **Timer and mask chips** (owned by `OverlayApp`, not the controls): 5/10/15-minute countdown and Screen/Blackout/Whiteout cycling.
-7. **Actions**: "Clear" (ghost, hairline border) and "Save PNG" (`--accent-mint` fill, dark text `#0A2E1B`). On a screenshot: "Style" and "Copy" (ghost) and "Save" (mint); the timer/mask add-ons are hidden there.
+7. **Actions**: "Clear" (ghost, hairline border) and "Save PNG" (`--accent-mint` fill, dark text `#0A2E1B`). On a screenshot: "Style" and "Copy" (ghost) and "Save" (mint); the timer/mask add-ons are hidden there. Style is absent in the free build and shows a lock without Premium.
+8. **Scroll nudge** (premium build, no Premium): after the page scrolls with marks on screen, a one-time note under the controls offers Premium (Upgrade when signed in, otherwise the Record view's sign-in); "Not now" hides it for the page. Never shown during an annotated recording.
 
-**Side panel** (`src/sidepanel/`): an extension page with the same tokens. A tab bar (only when there is more than one tab) separates **Screenshot** (frame style, every build) from **Links** (premium). Whoever opens it names the tab: `open-side-panel` / `premium-open-links` → `openSidePanel` (background/side-panel.ts) writes the section to `chrome.storage.session`, which the panel follows.
+**Side panel** (`src/sidepanel/`, premium build only): an extension page with the same tokens. A tab bar separates **Screenshot** (frame style; sign-in and upgrade without Premium) from **Links** (links with playback). Whoever opens it names the tab: `open-side-panel` / `premium-open-links` → `openSidePanel` (background/side-panel.ts) writes the section to `chrome.storage.session`, which the panel follows.
 
 **Annotate header title**: hovering (or keyboard-focusing) a tool previews its name (`TOOL_LABELS`) and what it does (`TOOL_CAPTIONS`, both in `shared/types.ts`) without picking it; otherwise the header shows the active tool the same way, or "Mark screen" and "Pick a tool to start drawing" when none is active. Tool buttons use `aria-label` and `aria-pressed`, with no `title` tooltip repeating the header. The screenshot editor does the same, falling back to "Screenshot". The caption has its own full-width line, so it isn't squeezed by the header actions. The panel's accessible name stays fixed (`CapannShell`'s `label`); the title and caption are polite live regions.
 
@@ -554,9 +598,10 @@ Manual checks worth running for any non-trivial change:
 1. `npm run typecheck && npm run build`
 2. Annotate: draw each tool, undo/redo, reload the tab and confirm persistence, then Save PNG. In the saved image every object appears exactly once and the Capann panel is not visible.
 3. Text and zoom: write a text, change its font, color, and size, edit it in place; select Zoom and confirm the lens magnifies, follows scrolling, and lets clicks through.
-4. Screenshot: select an area, annotate it, change the style in the side panel (the frame updates live), Copy and Save; then Back and confirm the page's own annotations are unchanged.
-5. Record: start with all inputs; confirm the annotation overlay/panel is absent from the video, the chip is visible with a live timer, pause/resume/stop/discard work from the chip, and the camera preview sits at the bottom right.
-6. Record with camera/mic denied: confirm recording still starts and the unavailable notice appears
+4. Screenshot: select an area, annotate it, change the style in the side panel (the frame updates live, with Premium), Copy and Save; then Back and confirm the page's own annotations are unchanged. Without Premium the export has no frame.
+5. Premium gates: without Premium, marks stay fixed while the page scrolls (and the nudge appears in the premium build); with Premium they scroll with the page, and upgrading mid-document doesn't move them. Play a link from the side panel's Links tab: the video seeks and Esc closes it.
+6. Record: start with all inputs; confirm the annotation overlay/panel is absent from the video, the chip is visible with a live timer, pause/resume/stop/discard work from the chip, and the camera preview sits at the bottom right.
+7. Record with camera/mic denied: confirm recording still starts and the unavailable notice appears
 
 ## Implemented Features
 
@@ -573,7 +618,9 @@ Manual checks worth running for any non-trivial change:
 - PNG export composited with annotations
 - Free text (Text tool) with Sans/Serif/Mono/Hand fonts, color, and size
 - Zoom lens (1.5×/2×/3×, S/M/L) that follows the cursor and stays click-through
-- Screenshot: drag-to-select, annotate on a frozen image, frame style in the side panel, Copy/Save
+- Screenshot: drag-to-select, annotate on a frozen image, frame style in the side panel (Premium), Copy/Save
+- Premium gates on annotation: scrolling marks (screen space without Premium) and screenshot styling
+- Session playback: a modal HTML5 player on the side panel's Links tab and the website's `/view-my-links`
 
 ## Premium Backend
 
@@ -630,6 +677,9 @@ The extension half of Premium (premium build only; everything is behind `PREMIUM
 - **Clipboard.** The page copies the link with `navigator.clipboard` as soon as
   it exists. That needs the tab focused; otherwise the card shows a Copy button.
   There is no `clipboardWrite` permission on purpose (it adds an install warning).
+- **Playback.** **Play** on a link (Links tab, website `/view-my-links`) opens
+  it in a modal `<video>`; the link itself streams with byte ranges. See
+  [Premium Features](#premium-features) for the WebM duration fix.
 - **Side panel.** The Links tab of the shared side panel. `premium-open-links`
   calls `openSidePanel(sender, "links")` (background/side-panel.ts), which runs
   `sidePanel.open()` synchronously in the message handler (it needs the click's

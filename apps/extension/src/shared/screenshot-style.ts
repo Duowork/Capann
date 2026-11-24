@@ -62,6 +62,19 @@ export const DEFAULT_SCREENSHOT_STYLE: ScreenshotStyle = {
   borderTone: "light",
 };
 
+/**
+ * No frame at all: the capture and its marks, nothing around them. What a
+ * screenshot gets without Premium (styling is a Premium feature).
+ */
+export const PLAIN_SCREENSHOT_STYLE: ScreenshotStyle = {
+  background: "none",
+  padding: 0,
+  radius: 0,
+  shadow: "none",
+  border: "none",
+  borderTone: "light",
+};
+
 export const PADDING_MAX = 160;
 export const RADIUS_MAX = 32;
 

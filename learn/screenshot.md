@@ -63,8 +63,15 @@ and the timer/mask add-ons and the screen mask are hidden while it is open.
 
 ## The frame style
 
-The frame is a preference, `capann_shot_style` in `chrome.storage.local`
-(`shared/screenshot-style.ts`):
+Styling is a **Premium** feature. Without a paid account the editor and the
+export use `PLAIN_SCREENSHOT_STYLE` (no background, padding, corners, shadow, or
+border): the capture and its marks, nothing else. The free build has no
+**Style** button and no side panel; in the premium build an unpaid account sees
+**Style** with a lock, and the side panel's Screenshot tab offers sign-in and
+upgrade instead of the controls.
+
+With Premium, the frame is a preference, `capann_shot_style` in
+`chrome.storage.local` (`shared/screenshot-style.ts`):
 
 | Setting | Values |
 |---|---|
@@ -95,20 +102,22 @@ async clipboard exists.
 
 ## Side panel
 
-The side panel ships in every build and is organised as tabs, so screenshot
-styling never mixes with Premium's links:
+The side panel ships in the premium build only (`scripts/build.mjs` drops it,
+and the `sidePanel` permission, from the free manifest). It is organised as
+tabs, so screenshot styling never mixes with links:
 
-| Tab | Build | File |
-|---|---|---|
-| Screenshot | every | `sidepanel/style-panel.tsx` |
-| Links | premium | `sidepanel/links-panel.tsx` |
+| Tab | Without Premium | With Premium | File |
+|---|---|---|---|
+| Screenshot | Explains styling is Premium; sign-in and upgrade (`AccountSection`) | The style controls | `sidepanel/style-panel.tsx` |
+| Links | Links saved in this browser | Every live link, with playback | `sidepanel/links-panel.tsx` |
 
-The free build has one tab and shows no tab bar. **Style** and **My links** both
+The Screenshot tab re-checks the account when it opens and on focus, so an
+upgrade made in the checkout tab unlocks it in place. **Style** and **My links** both
 go through `openSidePanel` in `background/side-panel.ts`, which notes the tab in
 `chrome.storage.session` and opens the panel synchronously (it needs the click's
 gesture). The panel follows that key while open.
 
-**The Screenshot tab is gated.** Its controls appear only while the window's
+**The Screenshot tab is gated** (for a paid account). Its controls appear only while the window's
 active tab has a screenshot open; otherwise it shows "No screenshot open", even
 when reached from the Links tab. `useScreenshotOpen` (style-panel.tsx) asks the
 page with `screenshot-editing-query` when the panel opens and whenever the

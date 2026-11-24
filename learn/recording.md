@@ -4,7 +4,7 @@ Capann's recording UI is in the page overlay. The Chrome action opens the Record
 
 ## Free in every edition
 
-Recording is free in both the free and premium editions; nothing in this flow checks the edition. Premium (`PREMIUM_ENABLED` in `src/shared/features.ts`) is reserved for the browser-AI layer and shareable links. In the premium build, a paid user's stop uploads the recording and copies a 7-day link instead of downloading it; everyone else, and every recording that ends without a stop command, is saved locally exactly as described here. See [Premium share links](premium.md).
+Recording is free in both the free and premium editions; nothing in this flow checks the edition. Premium (a paid account in the premium build; `premiumActive` in `src/shared/features.ts`) adds shareable links with playback, marks that scroll with the page, screenshot styling, and later the browser-AI layer. In the premium build, a paid user's stop uploads the recording and copies a 7-day link instead of downloading it; everyone else, and every recording that ends without a stop command, is saved locally exactly as described here. See [Premium share links](premium.md).
 
 Once recording starts, the annotation overlay and panel disappear, but a compact recording chip stays on the left edge. It shows elapsed time, pause/resume, stop & save, discard, and a circular camera preview at the bottom right. The chip is a **separate shadow host** (`#capann-recording-host`) and is intentionally part of the tab capture, so it appears in the saved video. The annotation host (`#capann-host`) remains hidden for the whole capture.
 

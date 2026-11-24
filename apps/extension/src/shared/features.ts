@@ -6,15 +6,29 @@
  * override it (see `scripts/build.mjs`). On `dev` this lets one codebase build
  * either edition; `free` and `premium` differ only in that config value.
  *
- * Annotations and instant tab recording are free in every edition. Premium is
- * reserved for the browser-AI layer and shareable links; gate those features on
- * `PREMIUM_ENABLED` here so the UI and the service worker cannot drift apart.
+ * Annotation, screenshots, and instant tab recording are free in every
+ * edition. Premium (a paid account, in the premium build) adds: marks that
+ * scroll with the page, screenshot styling, shareable 7-day links with
+ * playback, and later the browser-AI layer. Gate the build on
+ * `PREMIUM_ENABLED` and a feature on `premiumActive(account)`, so the UI and
+ * the service worker cannot drift apart.
  */
 import type { Edition } from "@capann/contract";
 export type { Edition };
 
 export const EDITION: Edition = __CAPANN_EDITION__;
 export const PREMIUM_ENABLED = EDITION === "premium";
+
+/**
+ * Whether Premium features are on for this account: the premium build, signed
+ * in, and paid (the cached claim; the API re-checks it on upload). Always
+ * false in the free build.
+ */
+export function premiumActive(
+  account: { signedIn: boolean; paid: boolean } | null | undefined,
+): boolean {
+  return PREMIUM_ENABLED && account?.signedIn === true && account.paid === true;
+}
 
 /** Premium backend origin (no trailing slash). Set in capann.config.json. */
 export const API_URL: string = __CAPANN_API_URL__;

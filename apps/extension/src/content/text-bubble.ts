@@ -8,7 +8,7 @@
  */
 
 import type { Point, TextAnnotation } from "../shared/types";
-import { activeImageSpace } from "./page-space";
+import { activeImageSpace, pageScroll, scrollsWithPage } from "./page-space";
 
 export const TEXT_BUBBLE = {
   defaultWidth: 280,
@@ -224,6 +224,9 @@ export function pageViewport(): BubbleViewport {
   // On a screenshot, bubbles stay inside the image.
   const image = activeImageSpace();
   if (image) return { width: image.width, height: image.height };
+  // Marks fixed on screen (no Premium scrolling) live on the screen.
+  if (!scrollsWithPage())
+    return { width: window.innerWidth || 1024, height: window.innerHeight || 768 };
   return {
     width: Math.max(
       window.innerWidth || 1024,
@@ -238,9 +241,10 @@ export function visibleViewport(): BubbleViewport {
   if (typeof window === "undefined") return { width: 1024, height: 768 };
   const image = activeImageSpace();
   if (image) return { width: image.width, height: image.height };
+  const scroll = pageScroll();
   return {
-    left: window.scrollX,
-    top: window.scrollY,
+    left: scroll.x,
+    top: scroll.y,
     width: window.innerWidth || 1024,
     height: window.innerHeight || 768,
   };

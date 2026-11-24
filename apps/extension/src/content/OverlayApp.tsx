@@ -44,6 +44,14 @@
  *   the image (`setImageSpace`). Persistence skips a parked state, and leaving
  *   the screenshot (Back/Close) puts the page's document back. Recording never
  *   meets it: the Screenshot view is only reachable from the chooser.
+ * - Marks that scroll with the page are Premium. The page's document carries
+ *   its space (`docSpace`: "page" or "screen", saved with it) and
+ *   `page-space.ts` follows it (`setScrollWithPage`), so every tool, the
+ *   composers, Save PNG, the zoom lens, and the Screenshot tool's carried
+ *   marks convert through the same functions. Upgrading moves a screen-space
+ *   document into page space at once; losing Premium only switches back once
+ *   the document is empty. Anything that maps annotations to the screen must
+ *   use `pageScroll()`, never `window.scrollX/Y` directly.
  * - For the annotation overlay, the shadow host is the only sanctioned way to
  *   make Capann invisible to a capture. Hiding it hides everything: canvases,
  *   shell, timer/mask chips, and any open text composer.
@@ -67,6 +75,9 @@
  * - Premium share UI in the Record view (`premium-panel.tsx`). Recording-only:
  *   a share job starts after the capture has ended and the overlay is visible
  *   again, so it never interacts with `captureHidden` or PNG export.
+ * - Premium gates on the annotation side (`premiumOn`): the document space
+ *   above, and screenshot styling (`frameStyle` is the plain, frameless
+ *   style without Premium).
  */
 
 import {
@@ -81,6 +92,7 @@ import {
 } from "react";
 import type {
   AnnotationObject,
+  AnnotationSpace,
   ArrowHeadStyle,
   BackgroundToContentMessage,
   CaptureVisibleTabResponse,
@@ -138,10 +150,13 @@ import type { BubbleViewport } from "./text-bubble";
 import {
   clearCanvas,
   pagePoint,
+  pageScroll,
   screenPoint,
+  scrollsWithPage,
   setImageSpace,
   setPageTransform,
   setScreenTransform,
+  setScrollWithPage,
   spaceScale,
 } from "./page-space";
 import {
@@ -162,6 +177,7 @@ import {
 import type { Screenshot, ViewportRect } from "./screenshot";
 import {
   DEFAULT_SCREENSHOT_STYLE,
+  PLAIN_SCREENSHOT_STYLE,
   loadScreenshotStyle,
   normalizeStyle,
   SCREENSHOT_STYLE_KEY,
@@ -179,12 +195,13 @@ import {
   toolCursor,
 } from "./cursors";
 import { PencilSimpleIcon, RecordIcon } from "@phosphor-icons/react";
-import { PREMIUM_ENABLED } from "../shared/features";
+import { PREMIUM_ENABLED, premiumActive } from "../shared/features";
 import {
   AccountSection,
   CopyDialog,
   FreeTeaser,
   PremiumStyles,
+  ScrollNudge,
   ShareCard,
   usePremiumAccount,
   useShareJob,
@@ -592,6 +609,12 @@ export function OverlayApp() {
   const [headStyle, setHeadStyle] = useState<ArrowHeadStyle>("triangle");
   const [filled, setFilled] = useState(false);
   const [objects, setObjects] = useState<AnnotationObject[]>([]);
+  /**
+   * Where the page's document lives: "page" (marks scroll with the page, a
+   * Premium feature) or "screen" (fixed on screen). See the space effects
+   * near the scroll handler; stored with the document.
+   */
+  const [docSpace, setDocSpace] = useState<AnnotationSpace>("page");
   // Undo history: `past` holds prior states, `future` holds states undone away.
   const [past, setPast] = useState<AnnotationObject[][]>([]);
   const [future, setFuture] = useState<AnnotationObject[][]>([]);
@@ -629,7 +652,12 @@ export function OverlayApp() {
   }));
   // Premium: the account (no token) and the latest share job for this tab.
   // Both are inert in the free build.
-  const premium = usePremiumAccount(uiView === "record");
+  // Re-checked whenever the panel opens (and on focus), so an upgrade made in
+  // the checkout tab unlocks scrolling marks and screenshot styling too.
+  const premium = usePremiumAccount(uiView !== "closed");
+  const premiumOn = premiumActive(premium.account);
+  // Screenshot styling is Premium: without it a screenshot has no frame.
+  const frameStyle = premiumOn ? shotStyle : PLAIN_SCREENSHOT_STYLE;
   const share = useShareJob();
   // A share job holds the finished file until the upload and the local-copy
   // choice are both settled; a new recording waits for it (see share.ts).
@@ -723,6 +751,8 @@ export function OverlayApp() {
     const result = await chrome.storage.session.get(storageKey());
     const state = result[storageKey()] as TabAnnotationState | undefined;
     if (!state?.objects) return;
+    // Saved before spaces existed = page space.
+    setDocSpace(state.space ?? "page");
     // A screenshot is being edited: the page's document is parked.
     if (parkedDocRef.current) parkedDocRef.current.objects = state.objects;
     else setObjects(state.objects);
@@ -733,10 +763,10 @@ export function OverlayApp() {
     if (tabId < 0 || parkedDocRef.current) return;
     window.clearTimeout(saveTimerRef.current);
     saveTimerRef.current = window.setTimeout(() => {
-      const state: TabAnnotationState = { objects };
+      const state: TabAnnotationState = { objects, space: docSpace };
       void chrome.storage.session.set({ [storageKey()]: state });
     }, 350);
-  }, [tabId, objects, storageKey]);
+  }, [tabId, objects, docSpace, storageKey]);
 
   const resizeCanvases = useCallback(() => {
     const objectsCanvas = objectsCanvasRef.current;
@@ -2200,6 +2230,14 @@ export function OverlayApp() {
     setUiView("chooser");
   }, [commitTextInput]);
 
+  /** The Record view, where sign-in and upgrade live (the scroll nudge's "Get Premium"). */
+  const openRecordView = useCallback(() => {
+    commitTextInput();
+    setStatusText("");
+    setRecordingStatus({ state: "idle" });
+    setUiView("record");
+  }, [commitTextInput]);
+
   /**
    * Capture the visible tab WITHOUT Capann's overlay. Every pixel capture goes
    * through here: Save PNG, the Screenshot tool, and the zoom lens snapshot.
@@ -2367,7 +2405,9 @@ export function OverlayApp() {
     async (rect: ViewportRect) => {
       setScreenshot({ phase: "capturing" });
       setStatusText("");
-      const scroll = { x: window.scrollX, y: window.scrollY };
+      // In the marks' own space: the real scroll in page space, 0,0 when
+      // they're fixed on screen.
+      const scroll = pageScroll();
       const width = window.innerWidth;
       try {
         const image = await loadImage(await captureTab());
@@ -2419,8 +2459,8 @@ export function OverlayApp() {
     if (!editShot) return null;
     // Flush an open composer so the export has the committed text.
     commitTextInput();
-    return renderScreenshot(editShot, shotStyle, objectsRef.current);
-  }, [editShot, shotStyle, commitTextInput]);
+    return renderScreenshot(editShot, frameStyle, objectsRef.current);
+  }, [editShot, frameStyle, commitTextInput]);
 
   const saveScreenshot = useCallback(() => {
     const canvas = exportScreenshot();
@@ -2498,9 +2538,9 @@ export function OverlayApp() {
   const shotFit = useMemo(
     () =>
       editShot
-        ? fitScreenshot(viewport.width, viewport.height, editShot, shotStyle)
+        ? fitScreenshot(viewport.width, viewport.height, editShot, frameStyle)
         : null,
-    [editShot, viewport, shotStyle],
+    [editShot, viewport, frameStyle],
   );
 
   // "Annotate screen" plumbing. The chip (separate root) shows the pencil
@@ -2785,8 +2825,63 @@ export function OverlayApp() {
   }, [editShot, shotFit]);
   // Never leave the page drawing in a screenshot's space.
   useEffect(() => () => setImageSpace(null), []);
+
+  // Scrolling marks are Premium. The page's document is in "page" space
+  // (scrolls with the page) or "screen" space (fixed on screen), and stays in
+  // the space it was drawn in:
+  // - with Premium, a screen-space document moves into page space at once,
+  //   shifted by the current scroll so nothing jumps;
+  // - without it, a page-space document keeps scrolling until it is empty
+  //   (cleared, or never drawn), so a lapsed subscription never strands
+  //   marks off screen.
+  // Undo history moves with the document. Skipped while a screenshot holds
+  // the live document; it runs again when the page's document is back.
+  const wantedSpace: AnnotationSpace = premiumOn ? "page" : "screen";
   useEffect(() => {
-    const onScroll = () => handleScrollRef.current();
+    if (docSpace === wantedSpace || screenshot !== null) return;
+    if (wantedSpace === "screen" && objects.length > 0) return;
+    // Converting moves positions, so an open composer is committed first.
+    commitTextInput();
+    const scroll = { x: window.scrollX, y: window.scrollY };
+    const sign = wantedSpace === "page" ? 1 : -1;
+    const dx = sign * scroll.x;
+    const dy = sign * scroll.y;
+    if (dx !== 0 || dy !== 0) {
+      const shift = (list: AnnotationObject[]) =>
+        list.map((object) => translateAnnotation(object, dx, dy));
+      const next = shift(objectsRef.current);
+      objectsRef.current = next;
+      setObjects(next);
+      setPast((states) => states.map(shift));
+      setFuture((states) => states.map(shift));
+    }
+    setDocSpace(wantedSpace);
+  }, [docSpace, wantedSpace, objects.length, screenshot, commitTextInput]);
+
+  // Point page-space at the document's space before anything draws, then
+  // re-apply both canvas transforms and redraw.
+  useLayoutEffect(() => {
+    setScrollWithPage(docSpace === "page");
+    handleScrollRef.current();
+  }, [docSpace]);
+  useEffect(() => () => setScrollWithPage(true), []);
+
+  // Without Premium, scrolling with marks on screen offers it once per page.
+  const [fixedScrollSeen, setFixedScrollSeen] = useState(false);
+  const [scrollNudgeDismissed, setScrollNudgeDismissed] = useState(false);
+  const fixedScrollSeenRef = useRef(false);
+  useEffect(() => {
+    const onScroll = () => {
+      // Marks fixed on screen don't move: nothing to redraw.
+      if (!scrollsWithPage() && !parkedDocRef.current) {
+        if (!fixedScrollSeenRef.current && objectsRef.current.length > 0) {
+          fixedScrollSeenRef.current = true;
+          setFixedScrollSeen(true);
+        }
+        return;
+      }
+      handleScrollRef.current();
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -2987,6 +3082,8 @@ export function OverlayApp() {
   // service worker.
   const screenshotEditingRef = useRef(false);
   useEffect(() => {
+    // Only the premium build has a side panel to tell.
+    if (!PREMIUM_ENABLED) return;
     if (screenshotEditingRef.current === screenshotEditing) return;
     screenshotEditingRef.current = screenshotEditing;
     void chrome.runtime
@@ -3477,6 +3574,20 @@ export function OverlayApp() {
               onSavePng={() => void savePng()}
               hiddenTools={annotatingCapture ? NO_SCREENSHOT_TOOLS : undefined}
             />
+            {/* Never in a recording: the panel can be on screen in one. */}
+            {PREMIUM_ENABLED &&
+              !premiumOn &&
+              docSpace === "screen" &&
+              fixedScrollSeen &&
+              !scrollNudgeDismissed &&
+              objects.length > 0 &&
+              !annotatingCapture && (
+                <ScrollNudge
+                  account={premium.account}
+                  onGetPremium={openRecordView}
+                  onDismiss={() => setScrollNudgeDismissed(true)}
+                />
+              )}
           </CapannShell>
         )}
 
@@ -3502,7 +3613,13 @@ export function OverlayApp() {
               onSavePng={saveScreenshot}
               onCopy={copyScreenshot}
               copyAvailable={copyAvailable}
-              onOpenStyle={() => openSidePanel("screenshot")}
+              // Styling is Premium: the free build has no Style button; an
+              // unpaid account gets it locked, and the side panel offers
+              // sign-in and upgrade instead of the controls.
+              onOpenStyle={
+                PREMIUM_ENABLED ? () => openSidePanel("screenshot") : undefined
+              }
+              styleLocked={!premiumOn}
             />
           </CapannShell>
         )}
@@ -3919,7 +4036,7 @@ export function OverlayApp() {
           />
         )}
         {editShot && shotFit && (
-          <ScreenshotStage shot={editShot} style={shotStyle} fit={shotFit} />
+          <ScreenshotStage shot={editShot} style={frameStyle} fit={shotFit} />
         )}
 
         <div className="canvas-wrapper">

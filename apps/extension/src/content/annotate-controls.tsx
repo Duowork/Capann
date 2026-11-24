@@ -12,6 +12,7 @@ import { useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import {
   ChatCircleIcon,
+  LockSimpleIcon,
   MagnifyingGlassPlusIcon,
   PaletteIcon,
   SelectionPlusIcon,
@@ -313,7 +314,10 @@ export interface AnnotateControlsProps {
   hiddenTools?: ReadonlySet<ToolId>;
   /** A tool is hovered or keyboard-focused (null when it no longer is). */
   onToolPreview?: (tool: ToolId | null) => void;
+  /** Opens the frame style. Omitted (no Style button) in the free build. */
   onOpenStyle?: () => void;
+  /** Styling needs Premium: Style shows a lock and opens the upgrade instead. */
+  styleLocked?: boolean;
   onCopy?: () => void;
   copyAvailable?: boolean;
 }
@@ -398,6 +402,16 @@ const ACTION_BUTTON: CSSProperties = {
   cursor: "pointer",
 };
 
+/** Read by screen readers only. */
+const VISUALLY_HIDDEN: CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  overflow: "hidden",
+  clip: "rect(0 0 0 0)",
+  whiteSpace: "nowrap",
+};
+
 /** Ghost pill (hairline border) used for secondary actions. */
 function GhostButton({
   children,
@@ -463,6 +477,7 @@ export function AnnotateControls({
   hiddenTools,
   onToolPreview,
   onOpenStyle,
+  styleLocked = false,
   onCopy,
   copyAvailable = true,
 }: AnnotateControlsProps) {
@@ -852,15 +867,32 @@ export function AnnotateControls({
       >
         {screenshotMode ? (
           <>
-            <GhostButton onClick={() => onOpenStyle?.()} title="Background, padding, corners, shadow, and border">
-              Style
-            </GhostButton>
+            {onOpenStyle && (
+              <GhostButton
+                onClick={onOpenStyle}
+                title={
+                  styleLocked
+                    ? "Background, padding, corners, shadow, and border are Capann Premium"
+                    : "Background, padding, corners, shadow, and border"
+                }
+              >
+                <span
+                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5 }}
+                >
+                  {styleLocked && (
+                    <LockSimpleIcon size={13} weight="bold" color="#A78BFA" aria-hidden />
+                  )}
+                  Style
+                  {styleLocked && <span style={VISUALLY_HIDDEN}> (Premium)</span>}
+                </span>
+              </GhostButton>
+            )}
             <GhostButton
               onClick={() => onCopy?.()}
               disabled={!copyAvailable}
               title={
                 copyAvailable
-                  ? "Copy the framed image"
+                  ? "Copy the image"
                   : "This page doesn't allow copying images. Use Save."
               }
             >

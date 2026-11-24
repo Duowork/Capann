@@ -6,10 +6,33 @@ piece runs, how a stop becomes a link, and the rules that keep a recording from
 ever being lost.
 
 Everything here exists only in the premium build. `PREMIUM_ENABLED`
-(`src/shared/features.ts`) gates the UI and the worker; `scripts/build.mjs` adds
-the website connection to the premium manifest. The side panel ships in every
-build (its Screenshot tab is free); Premium adds its Links tab. The free
-build shows one link to the pricing page and makes no network calls.
+(`src/shared/features.ts`) gates the build and `premiumActive(account)` a
+feature (premium build, signed in, paid); `scripts/build.mjs` adds the website
+connection and the side panel to the premium manifest. The free build shows
+one link to the pricing page and makes no network calls.
+
+What a paid account gets:
+
+| Feature | Without Premium | Where |
+|---|---|---|
+| Recordings as 7-day links | Saved to the computer | this note |
+| Session playback: **Play** on a link opens it in a modal HTML5 player | — | side panel Links tab (`sidepanel/player-dialog.tsx`), website `/view-my-links` (`RecordingPlayer.jsx`) |
+| Marks scroll with the page | Marks stay fixed on screen | [Canvas and memory](canvas.md#how-scrolling-works) |
+| Screenshot styling | Plain screenshot, no frame | [Screenshots](screenshot.md#the-frame-style) |
+| Browser AI: page and annotated-page descriptions, playback transcripts, summaries with a call to action | — | not built yet |
+
+In the premium build, an unpaid account sees a lock on **Style**, sign-in and
+upgrade in the side panel's Screenshot tab, and, after scrolling with marks on
+screen, a one-time nudge in Mark screen (`ScrollNudge`: Upgrade when signed in,
+otherwise the Record view's sign-in). The page re-checks `paid` whenever the
+panel opens and on focus, so an upgrade in the checkout tab unlocks everything
+without a reload.
+
+**Playback.** The link itself is the video: the API serves it with byte ranges,
+and both players use a plain `<video>` in a native `<dialog>` (focus trapped,
+Esc closes, focus back on Play). MediaRecorder's WebM has no duration in its
+header, so the players seek far past the end once to make Chrome find it, then
+rewind and play; without that the seek bar doesn't work.
 
 ## Where each piece runs
 
@@ -21,7 +44,7 @@ different powers. The design follows from those limits.
 | Content script (`premium-panel.tsx`) | Draw UI in the page, use the page's clipboard | Call the API (it is subject to the page's CORS) | Account row, share card, "Save a copy?" dialog, auto-copy |
 | Service worker (`background/premium.ts`) | Call the API, `chrome.storage`, `chrome.downloads`, receive website messages | Stay alive: Chrome stops it after ~30 s idle; no DOM, no `XMLHttpRequest` | Account, sign-in, upgrade, website hand-off, relaying status, link history |
 | Offscreen document (`offscreen/share.ts`) | Hold the recording `Blob`, call the API, report upload progress | Use `chrome.storage` (offscreen documents only get `chrome.runtime`) | Upload, the local-copy decision |
-| Side panel, Links tab (`sidepanel/links-panel.tsx`) | Everything an extension page can | — | Links list with countdowns, link recovery |
+| Side panel, Links tab (`sidepanel/links-panel.tsx`) | Everything an extension page can | — | Links list with countdowns, playback, link recovery |
 
 Two consequences shape everything else:
 

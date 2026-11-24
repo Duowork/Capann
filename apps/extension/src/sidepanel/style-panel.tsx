@@ -1,10 +1,16 @@
 /**
- * style-panel.tsx — the side panel's "Screenshot" tab (every edition).
+ * style-panel.tsx — the side panel's "Screenshot" tab (premium build).
  *
  * Edits the screenshot frame: background, padding, corners, shadow, and
  * border. The style is saved to `chrome.storage.local` on every change; the
  * page's screenshot editor follows it live through `storage.onChanged`, and
  * the next screenshot starts with it.
+ *
+ * Styling is a Premium feature. Without a paid account the tab explains that
+ * and offers sign-in and upgrade (the overlay's `AccountSection`); the page
+ * meanwhile frames nothing (`PLAIN_SCREENSHOT_STYLE`). The account is
+ * re-checked when the panel opens or regains focus, so an upgrade made in the
+ * checkout tab unlocks the controls without reopening anything.
  *
  * The controls are only available while the window's active tab has a
  * screenshot open (`useScreenshotOpen`). Otherwise the tab explains how to take
@@ -16,7 +22,13 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { SelectionPlusIcon } from "@phosphor-icons/react";
+import { LockSimpleIcon, SelectionPlusIcon } from "@phosphor-icons/react";
+import { premiumActive } from "../shared/features";
+import {
+  AccountSection,
+  PremiumStyles,
+  usePremiumAccount,
+} from "../content/premium-panel";
 import {
   BACKGROUNDS,
   DEFAULT_SCREENSHOT_STYLE,
@@ -32,6 +44,7 @@ import {
 } from "../shared/screenshot-style";
 import type { ScreenshotStyle } from "../shared/screenshot-style";
 import type {
+  AccountSummary,
   BackgroundToContentMessage,
   ContentToBackgroundMessage,
   ScreenshotEditingResponse,
@@ -273,7 +286,22 @@ function Segmented<T extends string>({
   );
 }
 
-export function ScreenshotStylePanel() {
+export function ScreenshotStylePanel({ onOpenLinks }: { onOpenLinks: () => void }) {
+  const premium = usePremiumAccount(true);
+  if (!premium.account) return null;
+  if (!premiumActive(premium.account))
+    return (
+      <StylingLocked
+        account={premium.account}
+        onAccount={premium.setAccount}
+        onRefresh={() => premium.reload(true, true)}
+        onOpenLinks={onOpenLinks}
+      />
+    );
+  return <StyleSection />;
+}
+
+function StyleSection() {
   const open = useScreenshotOpen();
   return (
     <div style={{ display: "grid", gap: 18 }}>
@@ -286,6 +314,53 @@ export function ScreenshotStylePanel() {
         </p>
       </div>
       {open === null ? null : open ? <StyleControls /> : <NoScreenshot />}
+    </div>
+  );
+}
+
+function StylingLocked({
+  account,
+  onAccount,
+  onRefresh,
+  onOpenLinks,
+}: {
+  account: AccountSummary;
+  onAccount: (account: AccountSummary) => void;
+  onRefresh: () => void;
+  onOpenLinks: () => void;
+}) {
+  return (
+    <div style={{ display: "grid", gap: 14 }}>
+      <PremiumStyles />
+      <div>
+        <h2 style={{ margin: 0, fontSize: 14, fontWeight: 500 }}>Screenshot style</h2>
+        <p style={{ ...MUTED, fontSize: 11 }}>
+          Without Premium, screenshots are saved as they are, with no frame.
+        </p>
+      </div>
+      <div
+        style={{
+          padding: "18px 16px",
+          borderRadius: 16,
+          border: "1px solid var(--border-hairline)",
+          background: "var(--surface-base)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <LockSimpleIcon size={18} weight="bold" color="#A78BFA" />
+          <p style={{ ...LABEL, fontSize: 13 }}>Styling is part of Capann Premium</p>
+        </div>
+        <p style={{ ...MUTED, marginTop: 6 }}>
+          Give screenshots a background, padding, rounded corners, a shadow, and a border.
+        </p>
+        <AccountSection
+          account={account}
+          onAccount={onAccount}
+          onRefresh={onRefresh}
+          nudge={false}
+          onOpenLinks={onOpenLinks}
+        />
+      </div>
     </div>
   );
 }

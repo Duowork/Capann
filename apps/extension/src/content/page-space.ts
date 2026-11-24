@@ -9,6 +9,13 @@
  * Only window scrolling is tracked. Pages that scroll an inner element (many web
  * apps) keep the window at 0,0, so annotations there behave as before.
  *
+ * SCREEN SPACE. Marks that scroll with the page are a Premium feature. Without
+ * it, `setScrollWithPage(false)` pins the page's document to the viewport: the
+ * scroll offset is treated as 0 everywhere here, so marks stay where they were
+ * drawn while the page moves underneath. Which space a tab's document uses is
+ * decided (and stored with it) by OverlayApp; everything that converts between
+ * pointer, screen, and annotation coordinates goes through `pageScroll()`.
+ *
  * IMAGE SPACE. While the screenshot editor is open, the same tools draw on a
  * frozen screenshot instead of the page. `setImageSpace` switches every
  * function here to the screenshot's own coordinates (CSS pixels from its
@@ -31,6 +38,7 @@ export interface ImageSpace {
 }
 
 let imageSpace: ImageSpace | null = null;
+let scrollWithPage = true;
 
 /** Switch drawing to a screenshot (or back to the page with null). */
 export function setImageSpace(space: ImageSpace | null): void {
@@ -39,6 +47,27 @@ export function setImageSpace(space: ImageSpace | null): void {
 
 export function activeImageSpace(): ImageSpace | null {
   return imageSpace;
+}
+
+/**
+ * Page space (true: marks scroll with the page, Premium) or screen space
+ * (false: marks stay fixed on screen). Set by OverlayApp from the document.
+ */
+export function setScrollWithPage(on: boolean): void {
+  scrollWithPage = on;
+}
+
+export function scrollsWithPage(): boolean {
+  return scrollWithPage;
+}
+
+/**
+ * The window scroll as annotation coordinates see it: the real scroll in page
+ * space, 0,0 in screen space. Use this instead of `window.scrollX/Y` anywhere
+ * that maps between annotations and the screen.
+ */
+export function pageScroll(): Point {
+  return scrollWithPage ? { x: window.scrollX, y: window.scrollY } : { x: 0, y: 0 };
 }
 
 /** Screen pixels per annotation unit: 1 on the page, the fit scale on a screenshot. */
@@ -53,7 +82,8 @@ export function pagePoint(clientX: number, clientY: number): Point {
       x: (clientX - imageSpace.originX) / imageSpace.scale,
       y: (clientY - imageSpace.originY) / imageSpace.scale,
     };
-  return { x: clientX + window.scrollX, y: clientY + window.scrollY };
+  const scroll = pageScroll();
+  return { x: clientX + scroll.x, y: clientY + scroll.y };
 }
 
 /** Page (or image) coordinates -> viewport CSS px. Inverse of `pagePoint`. */
@@ -63,7 +93,8 @@ export function screenPoint(point: Point): Point {
       x: imageSpace.originX + point.x * imageSpace.scale,
       y: imageSpace.originY + point.y * imageSpace.scale,
     };
-  return { x: point.x - window.scrollX, y: point.y - window.scrollY };
+  const scroll = pageScroll();
+  return { x: point.x - scroll.x, y: point.y - scroll.y };
 }
 
 /**
@@ -77,7 +108,8 @@ export function setPageTransform(ctx: CanvasRenderingContext2D): void {
     ctx.setTransform(s, 0, 0, s, imageSpace.originX * dpr, imageSpace.originY * dpr);
     return;
   }
-  ctx.setTransform(dpr, 0, 0, dpr, -window.scrollX * dpr, -window.scrollY * dpr);
+  const scroll = pageScroll();
+  ctx.setTransform(dpr, 0, 0, dpr, -scroll.x * dpr, -scroll.y * dpr);
 }
 
 /** Draw in viewport coordinates (laser, spotlight): HiDPI scale only. */

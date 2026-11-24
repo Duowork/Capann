@@ -1,7 +1,8 @@
 /**
  * links-panel.tsx — the side panel's "Links" tab (Premium build only).
  *
- * Shows every live link with a countdown to its expiry (RETENTION_DAYS). Two sources:
+ * Shows every live link with a countdown to its expiry (RETENTION_DAYS), and
+ * plays any of them back in a modal (player-dialog.tsx). Two sources:
  *
  * - the server (`GET /api/links/list`) when signed in: links from every device
  * - `capann_links` in chrome.storage.local: links made or seen in this browser,
@@ -19,6 +20,7 @@ import {
   CheckCircleIcon,
   CopyIcon,
   LinkSimpleIcon,
+  PlayIcon,
 } from "@phosphor-icons/react";
 import { API_URL } from "../shared/features";
 import { ApiError, listLinks, requestMagicLink } from "@capann/api-client";
@@ -32,6 +34,7 @@ import {
   rememberLinks,
 } from "../shared/premium/store";
 import type { ShareLink } from "../shared/types";
+import { PlayerDialog } from "./player-dialog";
 
 type Sync = "loading" | "synced" | "offline" | "signed-out";
 
@@ -84,11 +87,13 @@ function LinkRow({
   now,
   copied,
   onCopy,
+  onPlay,
 }: {
   link: ShareLink;
   now: number;
   copied: boolean;
   onCopy: () => void;
+  onPlay: () => void;
 }) {
   const left = Date.parse(link.expiresAt) - now;
   return (
@@ -134,6 +139,19 @@ function LinkRow({
       <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
         <button
           type="button"
+          onClick={onPlay}
+          style={{
+            ...BUTTON,
+            border: 0,
+            background: "var(--accent-violet)",
+            color: "#17131F",
+          }}
+        >
+          <PlayIcon size={14} weight="fill" />
+          Play
+        </button>
+        <button
+          type="button"
           onClick={onCopy}
           style={{
             ...BUTTON,
@@ -171,6 +189,7 @@ export function LinksPanel() {
   const [sync, setSync] = useState<Sync>("loading");
   const [now, setNow] = useState(() => Date.now());
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [playing, setPlaying] = useState<ShareLink | null>(null);
   const [recovery, setRecovery] = useState<Recovery>({ step: "open", error: "" });
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const copiedTimer = useRef(0);
@@ -320,6 +339,7 @@ export function LinksPanel() {
               now={now}
               copied={copiedId === link.id}
               onCopy={() => copy(link)}
+              onPlay={() => setPlaying(link)}
             />
           ))}
         </ul>
@@ -424,6 +444,7 @@ export function LinksPanel() {
           </form>
         )}
       </section>
+      {playing && <PlayerDialog link={playing} onClose={() => setPlaying(null)} />}
     </div>
   );
 }

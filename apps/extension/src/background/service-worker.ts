@@ -833,6 +833,8 @@ chrome.runtime.onMessage.addListener(
       return true;
     }
     if (message.kind === "open-side-panel") {
+      // The free build has no side panel (no `sidePanel` permission).
+      if (!PREMIUM_ENABLED) return false;
       // Before any await: sidePanel.open() needs the click's user gesture.
       void openSidePanel(sender, message.section).then(sendResponse);
       return true;
