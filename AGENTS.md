@@ -32,12 +32,15 @@ code that crosses between them lives in `packages/`.
 | `apps/website/` | `@capann/website` | The website at capann.duowork.tech: landing, playground, privacy, and the Premium pages `/verify`, `/view-my-links`, `/upgraded` (its own `AGENTS.md`) |
 | `packages/contract/` | `@capann/contract` | What crosses a boundary: API request/response types, error codes, route paths, limits, website → extension messages and replies |
 | `packages/api-client/` | `@capann/api-client` | fetch client for the API's JSON routes, plus `ApiError`; used by the extension, usable by the website |
+| `packages/design/` | `@capann/design` | The design system (`capann.css`): tokens for dark and light, foundation, and components; the website imports it, the extension mirrors it ([Design System](#design-system)) |
 
 - **One install, one lockfile** at the root. `tsconfig.base.json` holds the
   shared compiler options; each workspace extends it and adds only its runtime
   (DOM + `chrome`, Workers, or nothing).
 - **No package build step.** Packages export their TypeScript source
   (`"exports": "./src/index.ts"`); esbuild and Wrangler compile them inline.
+  `@capann/design` exports plain CSS (`capann.css`), which the website's
+  Tailwind imports.
 - **`@capann/contract` imports nothing** and its tsconfig loads no DOM, chrome,
   or Workers types, so every runtime can import it. The API checks its
   responses with `satisfies <ContractType>`, and `HttpError` only accepts an
@@ -455,13 +458,31 @@ Capann uses a dark, translucent, frosted-glass design system optimized for scree
 
 ### Design Tokens
 
-`design-tokens.md` is the canonical reference; keep code and that file aligned.
+`packages/design/capann.css` (`@capann/design`) is the canonical reference:
+the tokens for both themes (dark default, light), the foundation (type,
+layout, radius, elevation, glass, motion, toolbar geometry), and the
+components (website: `cp-button`, `cp-link`, `cp-icon-button`, `cp-glass`,
+`cp-title`, `cp-lead`, `cp-notice`, `cp-list`, `cp-plan`, `cp-keycap`,
+`cp-dialog`; toolbar: `cp-panel`, `cp-tool`, `cp-swatch`, `cp-slider`,
+`cp-chip`, `cp-action`, `cp-float-chip`). It replaced `design-tokens.md`.
+The website imports it; the extension's inline styles mirror it (its Shadow
+DOM doesn't load the file yet), so change both together. Don't add colours,
+radii, or fonts outside it without flagging them there.
+
+**Colour roles:** violet is the one accent (primary action, active tool,
+focus); mint is recording, success, and Save; red (`#FCA5A5` on dark) is an
+error or time running out (the timer's last two minutes, a link's last day).
+Nothing else is coloured: a heads-up (paused, starting, a device unavailable)
+is plain text. Cream was retired.
+
+The toolbar's core values:
 
 ```css
 /* Surfaces */
---surface-base: #1C1C20;       /* toolbar panel fill */
+--surface-base: #1C1C20;       /* panels, dialogs */
 --surface-elevated: #26262B;   /* hover / pressed state on icon buttons */
---surface-translucent: rgba(28,28,32,0.72); /* actual panel bg with backdrop blur */
+--surface-translucent: rgba(28,28,32,0.72); /* glass chips */
+--surface-panel: rgba(28,28,32,0.88);       /* the toolbar panel's glass */
 
 /* Borders */
 --border-hairline: rgba(255,255,255,0.08);
@@ -470,14 +491,15 @@ Capann uses a dark, translucent, frosted-glass design system optimized for scree
 /* Accent colors */
 --accent-violet: #A78BFA;   /* primary — active tool, focus ring, drag handle */
 --accent-mint: #86EFAC;     /* save / success actions */
---accent-cream: #F5E8A6;    /* default highlighter color, warm highlight */
+--text-error: #FCA5A5;      /* errors, time running out */
 
 /* Text */
 --text-primary: #F5F5F7;
 --text-muted: #8B8B93;
 
 /* Radius */
---radius-panel: 28px;   /* outer toolbar container */
+--radius-panel: 28px;   /* the website's floating nav, dialogs */
+--toolbar-radius: 24px; /* the toolbar panel (280px wide) */
 --radius-icon: 12px;    /* icon buttons */
 --radius-pill: 999px;   /* action buttons, color swatches */
 

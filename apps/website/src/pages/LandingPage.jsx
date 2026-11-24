@@ -47,11 +47,11 @@ const PANEL = 'mx-[clamp(8px,1.6vw,24px)] rounded-[clamp(28px,3.2vw,48px)]'
 const SECTION_SPACE = 'pb-[clamp(96px,13vw,176px)]'
 /** Anchor targets land under the floating header. */
 const ANCHOR = 'scroll-mt-28'
-const H2 = 'm-0 font-medium tracking-[-0.025em] leading-[1.06] text-balance text-[clamp(32px,4.2vw,52px)]'
-const BUTTON = 'inline-flex items-center justify-center px-6 py-3.5 rounded-full text-[15px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
-const BUTTON_PRIMARY = `${BUTTON} bg-draw text-ink hover:bg-draw-hover`
-const BUTTON_SECONDARY = `${BUTTON} bg-fg/[0.08] text-fg hover:bg-fg/[0.14]`
-const TEXT_LINK = 'text-fg underline decoration-fg/30 underline-offset-[5px] hover:decoration-fg transition-colors'
+const H2 = 'cp-heading'
+// Components from @capann/design (packages/design/capann.css).
+const BUTTON_PRIMARY = 'cp-button cp-button--primary'
+const BUTTON_SECONDARY = 'cp-button cp-button--secondary'
+const TEXT_LINK = 'cp-link'
 
 // Premium pricing. Monthly must match the extension (`PREMIUM_PRICE_LABEL` in
 // apps/extension/src/shared/features.ts). Pay-per-day is priced above the
@@ -556,7 +556,7 @@ function PremiumPanel() {
   )
 }
 
-const PLAN_CARD = 'flex flex-col rounded-[24px] p-[clamp(28px,2.8vw,40px)]'
+const PLAN_CARD = 'cp-plan'
 
 function CheckItem({ children }) {
   return (
@@ -593,7 +593,7 @@ function PayPerDayCard() {
   const dayLabel = `${days} ${days === 1 ? 'day' : 'days'}`
 
   return (
-    <div className={`${PLAN_CARD} bg-panel`}>
+    <div className={PLAN_CARD}>
       <PlanHeading name="Pay-per-day" price={formatUsd(total)} per={`for ${dayLabel}`} />
       <div className="flex items-baseline justify-between mt-8 mb-2">
         <label htmlFor="pay-per-day-days" className="text-[14px] font-medium">
@@ -662,7 +662,7 @@ function PricingSection() {
         Start free. Upgrade to share.
       </h2>
       <div className="grid gap-4 mt-14 md:grid-cols-2 xl:grid-cols-3">
-        <div className={`${PLAN_CARD} bg-panel`}>
+        <div className={PLAN_CARD}>
           <PlanHeading name="Free" price="$0" />
           <ul className="flex flex-col gap-3 mt-8 mb-0 p-0 list-none">
             {FREE_FEATURES.map((feature) => (
@@ -676,7 +676,7 @@ function PricingSection() {
           </div>
         </div>
         <PayPerDayCard />
-        <div id="premium-plan" tabIndex={-1} className={`${PLAN_CARD} bg-elevated outline-none scroll-mt-32 md:col-span-2 xl:col-span-1`}>
+        <div id="premium-plan" tabIndex={-1} className={`${PLAN_CARD} cp-plan--featured outline-none scroll-mt-32 md:col-span-2 xl:col-span-1`}>
           <PlanHeading name="Premium" price={MONTHLY_LABEL} per="a month" />
           <ul className="flex flex-col gap-3 mt-8 mb-0 p-0 list-none">
             {PREMIUM_FEATURES.map((feature) => (
@@ -707,7 +707,7 @@ function KeyCombo({ keys, small = false }) {
             </span>
           )}
           <kbd
-            className={`inline-flex items-center justify-center rounded-[9px] bg-elevated font-sans font-medium text-fg shadow-[inset_0_-2px_0_var(--keycap-edge)] ${
+            className={`cp-keycap ${
               small ? 'min-w-[28px] h-[28px] px-2 text-[12px]' : 'min-w-[40px] h-[40px] px-3 text-[14px]'
             }`}
           >
@@ -801,7 +801,7 @@ export default function LandingPage() {
 
       <main id="top" className="pt-[96px]">
         <section className={`${CONTAINER} pt-[clamp(56px,9vw,128px)]`}>
-          <h1 className="m-0 font-display font-bold uppercase leading-[0.86] tracking-[0.01em] text-[clamp(64px,10.5vw,156px)]">
+          <h1 className="cp-display">
             Show, don’t tell.
           </h1>
           <div className="flex flex-col gap-8 mt-8 lg:flex-row lg:items-end lg:justify-between">

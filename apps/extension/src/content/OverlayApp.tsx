@@ -3287,7 +3287,7 @@ export function OverlayApp() {
         <p
           key={item}
           role="status"
-          style={{ color: "#F5E8A6", fontSize: 11, margin: "8px 0 0" }}
+          style={{ color: "#F5F5F7", fontSize: 11, margin: "8px 0 0" }}
         >
           {message}
         </p>
@@ -3675,7 +3675,7 @@ export function OverlayApp() {
                 <p
                   style={{
                     margin: "0 0 8px",
-                    color: "#F5E8A6",
+                    color: "#F5F5F7",
                     fontSize: 11,
                     lineHeight: 1.45,
                   }}
@@ -3749,7 +3749,7 @@ export function OverlayApp() {
               </p>
             )}
             {recordingStatus.state === "starting" && (
-              <p role="status" style={{ color: "#F5E8A6", margin: "14px 0 0" }}>
+              <p role="status" style={{ color: "#8B8B93", margin: "14px 0 0" }}>
                 {(() => {
                   const s = recordingStatus as {
                     stage?: string;
@@ -3786,7 +3786,7 @@ export function OverlayApp() {
               <>
                 <p
                   role="status"
-                  style={{ color: "#F5E8A6", margin: "14px 0 0" }}
+                  style={{ color: "#8B8B93", margin: "14px 0 0" }}
                 >
                   Recording paused. Use Alt+Shift+T to resume or the Capann icon
                   to save.
@@ -3812,7 +3812,7 @@ export function OverlayApp() {
             {PREMIUM_ENABLED &&
               recordingStatus.state === "sharing" &&
               !share.status && (
-                <p role="status" style={{ color: "#F5E8A6", margin: "14px 0 0" }}>
+                <p role="status" style={{ color: "#8B8B93", margin: "14px 0 0" }}>
                   Preparing your link…
                 </p>
               )}
@@ -3872,14 +3872,14 @@ export function OverlayApp() {
                 height: "6px",
                 borderRadius: "999px",
                 animation: "pulseDot 1.6s ease-in-out infinite",
-                background: warn ? "#F5E8A6" : "#86EFAC",
+                background: warn ? "#FCA5A5" : "#86EFAC",
               }}
             />
             <span
               style={{
                 font: "500 13px/1 Manrope,system-ui,sans-serif",
                 fontVariantNumeric: "tabular-nums",
-                color: warn ? "#F5E8A6" : "#F5F5F7",
+                color: warn ? "#FCA5A5" : "#F5F5F7",
               }}
             >
               {formatTime(seconds)}

@@ -55,13 +55,17 @@ tailored to your needs").
 
 ## Capann's brand, applied
 
+- **Tokens and components:** `packages/design/capann.css` (`@capann/design`) holds every
+  colour, size, and component (`cp-button`, `cp-link`, `cp-notice`, `cp-plan`, …). Build from
+  it; flag anything it doesn't have instead of inventing a value.
 - **Colour:** a dark ink page by default, with a warm-paper light theme the visitor can switch
   to (the website: "Light and dark" in `apps/website/AGENTS.md`). Page-level UI uses the themed
-  tokens (`canvas`, `fg`, `line`, `accent`, panel surfaces, text muted) so it works in both;
+  tokens (canvas, text primary/body/muted, line, text accent, surfaces) so it works in both;
   fixed ink or paper only for things that are always dark or always light. Violet is the one
-  accent: the primary action and the active state. Mint means recording/success; cream is the
-  highlighter. Brand paper (#F6F5F2) is a real brand colour (the light theme's page), not
-  default "tasteful" cream; check it in both themes rather than adding more cream surfaces.
+  accent: the primary action and the active state. Mint means recording/success. Red means an
+  error or time running out. Nothing else is coloured: a heads-up is plain text (cream was
+  retired). Brand paper (#F6F5F2) is the light theme's page, not default "tasteful" cream;
+  don't add cream or beige surfaces.
 - **Type:** Sora for everything readable. Big Shoulders Display is the brand's display face:
   use it for one or two brand moments (the hero), not for every section heading.
 - **Icons:** Phosphor, fill weight. Where the fill version of a line glyph sits in a square

@@ -12,8 +12,8 @@ const SECTIONS = [
   ['FAQ', 'faq'],
 ]
 
-const PRIMARY =
-  'inline-flex items-center justify-center rounded-full bg-draw text-ink font-medium whitespace-nowrap transition-colors hover:bg-draw-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+// No gap: "free" is a span that hides on phones, part of the same words.
+const PRIMARY = 'cp-button cp-button--primary gap-0 whitespace-nowrap'
 
 /** On the landing page a plain in-page link; elsewhere a route back to it. */
 function SectionLink({ id, onLanding, onNavigate, className, children }) {
@@ -82,7 +82,7 @@ export default function SiteHeader({ minimal = false }) {
       <nav
         aria-label="Primary"
         className={`max-w-[1280px] mx-auto flex items-center gap-2 md:gap-7 px-3.5 md:px-7 py-3 rounded-[28px] border transition-all duration-morph ease-morph ${
-          scrolled || menuOpen ? 'glass shadow-[var(--shadow-float)]' : 'bg-transparent border-transparent'
+          scrolled || menuOpen ? 'cp-glass shadow-[var(--shadow-float)]' : 'bg-transparent border-transparent'
         }`}
       >
         <Link
@@ -153,7 +153,7 @@ export default function SiteHeader({ minimal = false }) {
           }`}
         >
           <div className="min-h-0">
-            <nav aria-label="Mobile" className="mt-2 rounded-[22px] glass p-2 shadow-[var(--shadow-float)]">
+            <nav aria-label="Mobile" className="mt-2 rounded-[22px] cp-glass p-2 shadow-[var(--shadow-float)]">
               {SECTIONS.map(([label, id]) => (
                 <SectionLink
                   key={id}

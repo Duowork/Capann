@@ -40,7 +40,7 @@ const CONTROL =
 
 function Keys({ children }) {
   return (
-    <kbd className="inline-flex items-center rounded-[7px] bg-elevated px-1.5 py-0.5 font-sans text-[0.9em] font-medium text-fg shadow-[inset_0_-2px_0_var(--keycap-edge)]">
+    <kbd className="cp-keycap rounded-[7px] px-1.5 py-0.5 text-[0.9em]">
       {children}
     </kbd>
   )
@@ -202,7 +202,7 @@ export default function PlaygroundPage() {
       <main inert={showMobileNotice} className="pt-[96px]">
         <div className={CONTAINER}>
           <section className="pt-[clamp(40px,6vw,80px)]">
-            <h1 className="m-0 font-medium tracking-[-0.03em] leading-[1.04] text-balance text-[clamp(40px,5.4vw,72px)]">
+            <h1 className="cp-title">
               Try Capann on a sample page
             </h1>
             <p className="mt-5 mb-0 max-w-[56ch] text-[18px] leading-[1.6] text-body">

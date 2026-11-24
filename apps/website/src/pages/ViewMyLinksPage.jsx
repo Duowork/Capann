@@ -91,11 +91,11 @@ function useClock(intervalMs) {
   return now
 }
 
-/** Time left, as plain text: cream under a day. */
+/** Time left, as plain text: red under a day, when it's running out. */
 function Countdown({ remainingMs }) {
   const expired = remainingMs <= 0
   const soon = !expired && remainingMs < DAY_MS
-  const tone = soon ? 'text-hl-text' : 'text-muted'
+  const tone = soon ? 'text-error' : 'text-muted'
   return (
     <span className={`inline-flex items-center gap-1.5 text-[13.5px] leading-none tabular-nums ${tone}`}>
       <Timer size={16} weight="fill" aria-hidden="true" />
@@ -122,12 +122,10 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
     resetTimer.current = setTimeout(() => setCopyState(null), COPIED_MS)
   }
 
-  const smallButton =
-    'inline-flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 rounded-full text-[13.5px] font-medium whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
-  const softButton = 'bg-fg/[0.08] text-fg hover:bg-fg/[0.14]'
+  const smallButton = 'cp-button gap-1.5 px-3 sm:px-4 py-2.5 text-[13.5px] whitespace-nowrap'
 
   return (
-    <li className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center py-6 border-b border-line">
+    <li className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center py-6">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <span id={labelId} className="text-[16px] font-medium text-fg">
@@ -153,7 +151,7 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
             type="button"
             onClick={() => onPlay(item)}
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none bg-draw text-ink hover:bg-draw-hover`}
+            className={`${smallButton} cp-button--primary flex-1 sm:flex-none`}
           >
             <Play size={16} weight="fill" aria-hidden="true" />
             Play
@@ -162,7 +160,7 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
             type="button"
             onClick={handleCopy}
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none sm:min-w-[118px] ${copyState === 'copied' ? 'bg-rec text-save-ink' : softButton}`}
+            className={`${smallButton} flex-1 sm:flex-none sm:min-w-[118px] ${copyState === 'copied' ? 'cp-button--save' : 'cp-button--secondary'}`}
           >
             {copyState === 'copied' ? (
               <>
@@ -181,7 +179,7 @@ function LinkRow({ item, remainingMs, onCopied, onPlay }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-describedby={labelId}
-            className={`${smallButton} flex-1 sm:flex-none ${softButton}`}
+            className={`${smallButton} cp-button--secondary flex-1 sm:flex-none`}
           >
             <ArrowSquareOut size={16} weight="fill" aria-hidden="true" />
             Open
@@ -199,7 +197,7 @@ function LinkList({ items, skewMs, onCopied }) {
   const [playing, setPlaying] = useState(null)
   return (
     <>
-      <ul className="mt-10 mb-0 p-0 list-none border-t border-line">
+      <ul className="cp-list mt-10">
         {items.map((item) => (
           <LinkRow
             key={item.id}

@@ -1,0 +1,11 @@
+{
+  "name": "@capann/design",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Capann's design system: the tokens (dark and light) and components shared by the website and the extension.",
+  "exports": {
+    ".": "./capann.css",
+    "./capann.css": "./capann.css"
+  },
+  "style": "./capann.css"
+}

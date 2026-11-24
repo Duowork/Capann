@@ -117,7 +117,7 @@ function LinkRow({
             marginLeft: "auto",
             fontSize: 11,
             fontVariantNumeric: "tabular-nums",
-            color: left < DAY_MS ? "#F5E8A6" : "var(--text-muted)",
+            color: left < DAY_MS ? "var(--danger)" : "var(--text-muted)",
           }}
         >
           {timeLeft(left)}
@@ -310,7 +310,7 @@ export function LinksPanel() {
       </header>
 
       {sync === "offline" && (
-        <p role="status" style={{ ...MUTED, marginTop: 16, color: "#F5E8A6" }}>
+        <p role="status" style={{ ...MUTED, marginTop: 16 }}>
           Couldn't reach Capann — showing links saved in this browser.
         </p>
       )}

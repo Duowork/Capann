@@ -95,7 +95,7 @@ export default function PrivacyPage() {
 
       <main className="max-w-[1280px] mx-auto px-[clamp(20px,5vw,56px)] pt-[96px]">
         <div className="max-w-[72ch] pt-[clamp(40px,6vw,80px)] pb-[clamp(48px,7vw,88px)]">
-          <h1 className="m-0 font-medium tracking-[-0.03em] leading-[1.04] text-[clamp(40px,5.4vw,72px)]">Privacy policy</h1>
+          <h1 className="cp-title">Privacy policy</h1>
           <p className="mt-6 mb-0 text-[17px] leading-[1.66] text-body max-w-[62ch]">
             Capann is a browser extension developed by Duowork that helps people communicate visually on webpages through drawing, pointing, highlighting, screenshots, and screen recordings.
           </p>

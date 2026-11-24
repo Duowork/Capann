@@ -1,0 +1,570 @@
+/*
+ * Capann design system: the visual foundation and components.
+ *
+ * This file is the canonical reference for how Capann looks. It replaces the
+ * toolbar's original token doc (design-tokens.md) and follows the design
+ * approach agreed for every page (apps/website/AGENTS.md, "Design approach")
+ * and the ai-slop-design skill (.agents/skills/ai-slop-design).
+ *
+ * Who uses it
+ * - The website imports it (apps/website/src/index.css). Its Tailwind theme
+ *   points at these variables, and its buttons, links, notices, keycaps, and
+ *   glass panels use the component classes below.
+ * - The extension draws its UI with inline styles inside a Shadow DOM and
+ *   doesn't load this file yet. Its literals mirror section 1 and the toolbar
+ *   components (section 3b); change both together. The tokens are also
+ *   declared on :host so a shadow root can adopt this file later.
+ *
+ * Rules
+ * - One accent: violet is the primary action, the active state, and focus.
+ *   Mint means recording, success, and Save. Red means an error, or time
+ *   running out. Nothing else is coloured. (Cream was retired: a heads-up is
+ *   plain text, or red when it is urgent.)
+ * - Flat surfaces. A container gets a fill or a hairline, never a border and a
+ *   shadow together; no decorative gradients or glows. The floating nav and
+ *   the toolbar are the exceptions: glass needs its hairline to read over any
+ *   page, and it floats.
+ * - Don't add colours, radii, or fonts outside this file without flagging them
+ *   here. If a token doesn't work in practice, say which one rather than
+ *   adjusting it quietly.
+ *
+ * Contents
+ * 1. Foundation: brand colours · theme colours (dark default, light) ·
+ *    annotation palette · type · layout · radius · elevation · glass · motion ·
+ *    toolbar geometry
+ * 2. Base
+ * 3. Components: a) website  b) extension toolbar
+ */
+
+/* ── 1. Foundation ─────────────────────────────────────────────────────── */
+
+:root,
+:host {
+  color-scheme: dark;
+
+  /* Brand colours: fixed, the same in both themes. Use them for things that
+     are always dark or always light (text on violet, illustrations, product
+     shots); page-level UI uses the theme colours below. */
+  --ink: #141417; /* the dark page; text on violet. (Brand sheet ink is #121212.) */
+  --on-ink: #f5f5f7; /* text that always sits on ink */
+  --paper: #f6f5f2; /* brand paper: the light theme's page */
+  --browser: #0f0f12; /* the browser frame around product shots */
+  --accent-violet: #a78bfa; /* the one accent: primary action, active tool, focus, drag handle */
+  --accent-violet-hover: #c4b0fc;
+  --accent-violet-soft: rgba(167, 139, 250, 0.18); /* active tool fill */
+  --accent-mint: #86efac; /* recording, success, Save */
+  --save-ink: #0a2e1b; /* text on mint */
+
+  /* Theme colours, dark values (the default). */
+  --canvas: #141417; /* the page */
+  --text-primary: #f5f5f7; /* headings, labels, page text */
+  --text-body: #b8b8c0; /* running copy */
+  --text-muted: #8b8b93; /* secondary text, nav links, captions */
+  --text-accent: #a78bfa; /* violet as text, icons, outlines */
+  --text-success: #86efac; /* mint as text and status */
+  --text-error: #fca5a5; /* errors, and time running out */
+  --surface-base: #1c1c20; /* panels and dialogs */
+  --surface-elevated: #26262b; /* hover, keycaps, the featured plan */
+  --surface-translucent: rgba(28, 28, 32, 0.72); /* glass: the nav, chips */
+  --surface-panel: rgba(28, 28, 32, 0.88); /* glass: the toolbar panel */
+  --border-hairline: rgba(255, 255, 255, 0.08); /* the edge of glass */
+  --border-hairline-strong: rgba(255, 255, 255, 0.15); /* toolbar ghost buttons and chips */
+  --line: rgba(255, 255, 255, 0.1); /* hairlines between things on the page */
+  --track: rgba(255, 255, 255, 0.12); /* slider tracks */
+  --inverse: #f6f5f2; /* the one contrasting panel ("Why go Premium?") */
+  --on-inverse: #141417;
+  --selection: rgba(167, 139, 250, 0.32);
+  --shadow-float: 0 18px 50px rgba(0, 0, 0, 0.45); /* the floating nav, dialogs */
+  --shadow-panel: 0 18px 52px rgba(0, 0, 0, 0.28); /* the toolbar panel */
+  --keycap-edge: rgba(0, 0, 0, 0.5);
+
+  /* Annotation palette (the toolbar's swatches): fixed, drawn on any page. */
+  --mark-red: #ef4444;
+  --mark-black: #0a0a0c;
+  --mark-yellow: #facc15;
+  --mark-green: #22c55e;
+  --mark-white: #ffffff;
+
+  /* Type. Sora for everything readable; Big Shoulders Display only for the
+     wordmark and the landing hero. The extension's panel uses Manrope at 13px
+     (never below 11px). Tabular numerals for timers, prices, and sizes. */
+  --font-sans: "Sora", system-ui, sans-serif;
+  --font-display: "Big Shoulders Display", sans-serif;
+  --font-toolbar: "Manrope", "Inter", system-ui, sans-serif;
+  --weight-light: 300; /* website body copy */
+  --weight-regular: 400; /* toolbar body */
+  --weight-medium: 500; /* headings, labels, buttons, active state */
+  --weight-bold: 700; /* display type only */
+  --font-size-display: clamp(64px, 10.5vw, 156px); /* landing hero, uppercase */
+  --font-size-title: clamp(40px, 5.4vw, 72px); /* a page's h1 */
+  --font-size-heading: clamp(32px, 4.2vw, 52px); /* section h2 */
+  --font-size-subheading: 24px;
+  --font-size-lead: 17px;
+  --font-size-body: 15px;
+  --font-size-small: 13.5px; /* nav, list meta */
+  --font-size-caption: 12px;
+  --font-size-toolbar: 13px;
+  --font-size-min: 11px;
+  --tracking-display: 0.01em;
+  --tracking-title: -0.03em;
+  --tracking-heading: -0.025em;
+  --leading-display: 0.86;
+  --leading-title: 1.04;
+  --leading-heading: 1.06;
+  --leading-body: 1.66;
+
+  /* Layout: one column, separated by space and the odd hairline. */
+  --container: 1280px;
+  --gutter: clamp(20px, 5vw, 56px);
+  --section-space: clamp(96px, 13vw, 176px);
+  --header-offset: 112px; /* anchors land below the floating nav */
+  --column-task: 720px; /* a one-task page (sign-in, upgrade) */
+  --column-wide: 880px; /* a list (the links page) */
+  --measure: 62ch; /* longest comfortable line */
+
+  /* Radius */
+  --radius-section: clamp(28px, 3.2vw, 48px); /* the one full-width panel */
+  --radius-panel: 28px; /* the floating nav, dialogs */
+  --radius-card: 24px; /* plans, deck cards, the browser frame */
+  --radius-notice: 20px;
+  --radius-icon: 12px; /* toolbar tool buttons */
+  --radius-keycap: 9px;
+  --radius-pill: 999px; /* buttons, chips, swatches */
+
+  /* Glass: page content ghosts through, which matters while presenting. */
+  --blur-panel: 20px;
+
+  /* Motion: fast, never bouncy. Only where it explains something. */
+  --dur-morph: 180ms;
+  --ease-morph: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --stagger-row: 50ms; /* toolbar rows fading in, one after another */
+
+  /* Toolbar geometry (the extension's panel, as shipped). */
+  --toolbar-width: 280px;
+  --toolbar-radius: 24px;
+  --toolbar-padding: 16px;
+  --tool-height: 30px;
+  --swatch-size: 18px;
+  --chip-height: 24px;
+  --action-height: 32px;
+}
+
+/* Light theme: warm paper. Set by the website's theme toggle on <html>
+   (data-theme="light"). Only theme colours change. Violet, mint, and red as
+   text are darker here so they stay readable on paper; buttons keep the brand
+   violet. */
+:root[data-theme="light"],
+:host([data-theme="light"]) {
+  color-scheme: light;
+  --canvas: #f6f5f2;
+  --text-primary: #141417;
+  --text-body: #3a3a42;
+  --text-muted: #5c5c66;
+  --text-accent: #6d4ae0;
+  --text-success: #15803d;
+  --text-error: #b42318;
+  --surface-base: #ffffff;
+  --surface-elevated: #eceae5;
+  --surface-translucent: rgba(255, 255, 255, 0.78);
+  --surface-panel: rgba(255, 255, 255, 0.88);
+  --border-hairline: rgba(20, 20, 23, 0.1);
+  --border-hairline-strong: rgba(20, 20, 23, 0.16);
+  --line: rgba(20, 20, 23, 0.1);
+  --track: rgba(20, 20, 23, 0.12);
+  --inverse: #141417;
+  --on-inverse: #f5f5f7;
+  --shadow-float: 0 14px 40px rgba(20, 20, 23, 0.12);
+  --shadow-panel: 0 14px 40px rgba(20, 20, 23, 0.12);
+  --keycap-edge: rgba(20, 20, 23, 0.16);
+}
+
+/* ── 2. Base ───────────────────────────────────────────────────────────── */
+
+@layer base {
+  body {
+    background: var(--canvas);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-weight: var(--weight-light);
+  }
+
+  ::selection {
+    background: var(--selection);
+  }
+}
+
+/* Art made for one background (the logo): `on-dark` shows in the dark theme,
+   `on-light` in the light one. */
+.on-light {
+  display: none;
+}
+:root[data-theme="light"] .on-dark {
+  display: none;
+}
+:root[data-theme="light"] .on-light {
+  display: revert;
+}
+
+/* ── 3. Components ─────────────────────────────────────────────────────── */
+
+@layer components {
+  /* ── 3a. Website ── */
+
+  /* Buttons: only where there's an action (the header, the hero, the plans,
+     a task page). Violet is the one primary per view; secondary is a soft
+     fill. No arrows, no borders. Size and spacing can be overridden. */
+  .cp-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    font-family: inherit;
+    font-size: var(--font-size-body);
+    font-weight: var(--weight-medium);
+    line-height: 1.5;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-morph) var(--ease-morph),
+      color var(--dur-morph) var(--ease-morph);
+  }
+  .cp-button:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+  .cp-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  .cp-button--primary {
+    background: var(--accent-violet);
+    color: var(--ink);
+  }
+  .cp-button--primary:not(:disabled):hover {
+    background: var(--accent-violet-hover);
+  }
+  .cp-button--secondary {
+    background: color-mix(in oklab, var(--text-primary) 8%, transparent);
+    color: var(--text-primary);
+  }
+  .cp-button--secondary:not(:disabled):hover {
+    background: color-mix(in oklab, var(--text-primary) 14%, transparent);
+  }
+  /* Recording and Save: mint with dark text. */
+  .cp-button--save {
+    background: var(--accent-mint);
+    color: var(--save-ink);
+  }
+
+  /* Links are underlined text, no arrows. */
+  .cp-link {
+    color: var(--text-primary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--text-primary) 30%, transparent);
+    text-underline-offset: 5px;
+    transition: text-decoration-color var(--dur-morph) var(--ease-morph);
+  }
+  .cp-link:hover {
+    text-decoration-color: var(--text-primary);
+  }
+
+  /* A round icon-only button (theme toggle, dialog controls). Give it an
+     aria-label; the icon is Phosphor in the fill weight. */
+  .cp-icon-button {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-morph) var(--ease-morph),
+      color var(--dur-morph) var(--ease-morph);
+  }
+  .cp-icon-button:hover {
+    background: color-mix(in oklab, var(--text-primary) 8%, transparent);
+    color: var(--text-primary);
+  }
+  .cp-icon-button:focus-visible {
+    outline: 2px solid var(--text-accent);
+    outline-offset: 2px;
+  }
+
+  /* Glass: a translucent panel with a hairline. The floating nav is glass +
+     --radius-panel + --shadow-float once the page scrolls. */
+  .cp-glass {
+    background: var(--surface-translucent);
+    border: 1px solid var(--border-hairline);
+    backdrop-filter: blur(var(--blur-panel));
+    -webkit-backdrop-filter: blur(var(--blur-panel));
+  }
+
+  /* Headings: no label above them, one colour, sentence case. */
+  .cp-display {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--font-size-display);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    text-transform: uppercase;
+  }
+  .cp-title {
+    margin: 0;
+    font-size: var(--font-size-title);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-title);
+    letter-spacing: var(--tracking-title);
+    text-wrap: balance;
+  }
+  .cp-heading {
+    margin: 0;
+    font-size: var(--font-size-heading);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-heading);
+    letter-spacing: var(--tracking-heading);
+    text-wrap: balance;
+  }
+  /* The one sentence under a title. Not under every heading. */
+  .cp-lead {
+    margin: 0;
+    max-width: var(--measure);
+    font-size: var(--font-size-lead);
+    line-height: var(--leading-body);
+    color: var(--text-body);
+  }
+
+  /* Notice: a soft fill per tone, no border. A title in medium weight, then
+     the message; actions go under it. */
+  .cp-notice {
+    padding: 20px;
+    border-radius: var(--radius-notice);
+    background: color-mix(in oklab, var(--text-primary) 5%, transparent);
+    color: var(--text-body);
+  }
+  .cp-notice--success {
+    background: color-mix(in oklab, var(--text-success) 8%, transparent);
+  }
+  .cp-notice--error {
+    background: color-mix(in oklab, var(--text-error) 8%, transparent);
+  }
+  @media (min-width: 640px) {
+    .cp-notice {
+      padding: 24px;
+    }
+  }
+
+  /* A live status line's dot. A spinner replaces it while busy. */
+  .cp-status-dot {
+    flex: none;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--text-success);
+  }
+
+  /* A list on hairlines (FAQ, links): rows separated by a line, no boxes. */
+  .cp-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+  .cp-list > li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* Plans: the site's one set of cards. Fill only. The featured plan sits on
+     the elevated surface and carries the one violet plan button. */
+  .cp-plan {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(28px, 2.8vw, 40px);
+    border-radius: var(--radius-card);
+    background: var(--surface-base);
+  }
+  .cp-plan--featured {
+    background: var(--surface-elevated);
+  }
+
+  /* Keycaps: a raised key, labelled for the visitor's computer (⌥ Option and
+     ⌘ Cmd on a Mac, Alt and Ctrl elsewhere). */
+  .cp-keycap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-keycap);
+    background: var(--surface-elevated);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-weight: var(--weight-medium);
+    box-shadow: inset 0 -2px 0 var(--keycap-edge);
+  }
+
+  /* A modal (the recording player): a fill and a shadow, no border. */
+  .cp-dialog {
+    border: 0;
+    border-radius: var(--radius-panel);
+    background: var(--surface-base);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-float);
+  }
+  .cp-dialog::backdrop {
+    background: color-mix(in oklab, var(--canvas) 80%, transparent);
+    backdrop-filter: blur(4px);
+  }
+
+  /* ── 3b. Extension toolbar ── */
+
+  /* The panel: glass over the page being presented, draggable by its header.
+     Rows stagger in (--stagger-row) when a view opens. */
+  .cp-panel {
+    box-sizing: border-box;
+    width: min(var(--toolbar-width), calc(100vw - 32px));
+    padding: 0 var(--toolbar-padding) var(--toolbar-padding);
+    border: 1px solid var(--line);
+    border-radius: var(--toolbar-radius);
+    background: var(--surface-panel);
+    backdrop-filter: blur(var(--blur-panel));
+    -webkit-backdrop-filter: blur(var(--blur-panel));
+    box-shadow: var(--shadow-panel);
+    color: var(--text-primary);
+    font: var(--weight-regular) var(--font-size-toolbar) / 1.45 var(--font-toolbar);
+  }
+
+  /* A tool in the 7-column grid. Active: violet at 18% with a violet icon.
+     Clicking the active tool turns drawing off. */
+  .cp-tool {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--tool-height);
+    border: 0;
+    border-radius: var(--radius-icon);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .cp-tool:hover {
+    background: var(--surface-elevated);
+  }
+  .cp-tool[aria-pressed="true"] {
+    background: var(--accent-violet-soft);
+    color: var(--accent-violet);
+  }
+
+  /* A colour swatch. Selected: a ring in the primary text colour. The black
+     swatch gets a faint edge so it shows on the dark panel. */
+  .cp-swatch {
+    width: var(--swatch-size);
+    height: var(--swatch-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+  .cp-swatch[aria-pressed="true"] {
+    box-shadow:
+      0 0 0 2px var(--surface-base),
+      0 0 0 4px var(--text-primary);
+  }
+
+  /* The size slider: a wedge that thickens to the right, filled in violet,
+     with a round thumb. Set --value (0–1) on the track. */
+  .cp-slider {
+    position: relative;
+    height: 12px;
+  }
+  .cp-slider::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    clip-path: polygon(0 calc(50% - 1px), 100% 0, 100% 100%, 0 calc(50% + 1px));
+    background: linear-gradient(to right, var(--accent-violet) calc(var(--value, 0.5) * 100%), var(--track) 0);
+  }
+  .cp-slider__thumb {
+    position: absolute;
+    top: 50%;
+    left: calc(var(--value, 0.5) * 100%);
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-pill);
+    background: var(--text-primary);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Option chips (head style, fill, font, zoom, timer, mask). On: violet. */
+  .cp-chip {
+    height: var(--chip-height);
+    padding: 0 11px;
+    border: 1px solid var(--border-hairline-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--weight-medium) var(--font-size-min) / 1 var(--font-toolbar);
+    cursor: pointer;
+  }
+  .cp-chip[aria-pressed="true"] {
+    border-color: rgba(167, 139, 250, 0.55);
+    background: var(--accent-violet-soft);
+    color: var(--accent-violet);
+  }
+
+  /* The toolbar's actions: Clear is a ghost (a hairline on the panel's own
+     glass), Save PNG is .cp-button--save at this height. */
+  .cp-action {
+    flex: 1;
+    height: var(--action-height);
+    border: 1px solid var(--border-hairline-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-primary);
+    font: var(--weight-medium) var(--font-size-toolbar) var(--font-toolbar);
+    cursor: pointer;
+  }
+  .cp-action.cp-button--save {
+    border-color: transparent;
+    background: var(--accent-mint);
+    color: var(--save-ink);
+  }
+
+  /* The floating timer and recording chips: glass pills that stay readable
+     over any page. A warning (the timer's last minute) turns the time red. */
+  .cp-float-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 6px 0 12px;
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-pill);
+    background: var(--surface-translucent);
+    backdrop-filter: blur(var(--blur-panel));
+    -webkit-backdrop-filter: blur(var(--blur-panel));
+    color: var(--text-primary);
+    font: var(--weight-medium) var(--font-size-toolbar) / 1 var(--font-toolbar);
+    font-variant-numeric: tabular-nums;
+  }
+  .cp-float-chip[data-warn] {
+    color: var(--text-error);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-button,
+  .cp-link,
+  .cp-icon-button {
+    transition: none;
+  }
+}

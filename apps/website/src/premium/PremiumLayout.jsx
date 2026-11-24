@@ -11,13 +11,10 @@ import { INSTALL_URL } from './config.js'
 
 const BASE = import.meta.env.BASE_URL
 
-const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+// Components from @capann/design (packages/design/capann.css).
+export const PRIMARY_BUTTON = 'cp-button cp-button--primary'
 
-const BUTTON = `inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-[15px] font-medium transition-colors ${FOCUS_RING}`
-
-export const PRIMARY_BUTTON = `${BUTTON} bg-draw text-ink hover:bg-draw-hover disabled:opacity-70 disabled:hover:bg-draw`
-
-export const SECONDARY_BUTTON = `${BUTTON} bg-fg/[0.08] text-fg hover:bg-fg/[0.14] disabled:opacity-60`
+export const SECONDARY_BUTTON = 'cp-button cp-button--secondary'
 
 const CONTAINER = 'w-full max-w-[1280px] mx-auto px-[clamp(20px,5vw,56px)]'
 
@@ -40,7 +37,7 @@ export function PremiumLayout({ wide = false, children }) {
 /** The page's one heading: Sora, sentence case, one colour (like /privacy). */
 export function PageHeading({ children }) {
   return (
-    <h1 className="m-0 font-medium tracking-[-0.03em] leading-[1.04] text-balance wrap-anywhere text-[clamp(40px,5.4vw,64px)]">
+    <h1 className="cp-title wrap-anywhere text-[clamp(40px,5.4vw,64px)]">
       {children}
     </h1>
   )
@@ -48,7 +45,7 @@ export function PageHeading({ children }) {
 
 /** The sentence under the heading. */
 export function Lead({ children }) {
-  return <p className="mt-6 mb-0 text-[17px] leading-[1.66] text-body max-w-[62ch]">{children}</p>
+  return <p className="cp-lead mt-6">{children}</p>
 }
 
 /** A finished state: a mint check above the heading. */
@@ -79,27 +76,27 @@ export function StatusLine({ busy = false, quiet = false, children }) {
         (busy ? (
           <Spinner className="text-accent" />
         ) : (
-          <span aria-hidden="true" className="w-2 h-2 flex-none rounded-full bg-rec-text" />
+          <span aria-hidden="true" className="cp-status-dot" />
         ))}
       {children}
     </p>
   )
 }
 
-// A soft fill per tone, no border.
+// `cp-notice`: a soft fill per tone, no border.
 const NOTICE_TONES = {
-  error: { box: 'bg-error/[0.08]', icon: 'text-error', Icon: WarningCircle },
-  success: { box: 'bg-rec-text/[0.08]', icon: 'text-rec-text', Icon: CheckCircle },
-  info: { box: 'bg-fg/[0.05]', icon: 'text-accent', Icon: Info },
+  error: { box: 'cp-notice--error', icon: 'text-error', Icon: WarningCircle },
+  success: { box: 'cp-notice--success', icon: 'text-rec-text', Icon: CheckCircle },
+  info: { box: '', icon: 'text-accent', Icon: Info },
 }
 
 export function Notice({ tone = 'info', role, title, actions, children }) {
   const { box, icon, Icon } = NOTICE_TONES[tone]
   return (
-    <div role={role} className={`mt-8 p-5 sm:p-6 rounded-[20px] ${box}`}>
+    <div role={role} className={`cp-notice mt-8 ${box}`}>
       <div className="flex gap-3.5">
         <Icon size={22} weight="fill" aria-hidden="true" className={`flex-none mt-px ${icon}`} />
-        <div className="min-w-0 text-[15px] leading-[1.65] text-body">
+        <div className="min-w-0 text-[15px] leading-[1.65]">
           {title && <p className={`m-0 font-medium ${tone === 'error' ? 'text-error' : 'text-fg'}`}>{title}</p>}
           {children && <div className={title ? 'mt-1' : ''}>{children}</div>}
         </div>

@@ -1,99 +1,50 @@
 @import "tailwindcss";
+@import "@capann/design";
 
 /*
- * Capann design tokens → Tailwind v4 theme.
- * Source: `/Users/romeo/Desktop/Capann website/uploads/design-tokens.md`
- * (annotation-extension toolbar system) + landing page (`Capann Landing.dc.html`)
- * + brand sheet (`Capann Brand Sheet.dc.html`).
+ * The website's Tailwind setup on top of Capann's design system.
  *
- * Naming: canonical token names are exposed verbatim (e.g. `bg-surface-base`,
- * `rounded-panel`, `ease-morph`) AND short landing aliases are kept so existing
- * classes (`bg-panel`, `text-draw`, `bg-ink`, …) keep working.
+ * Every colour, radius, font, and motion value lives in @capann/design
+ * (packages/design/capann.css), with its dark and light themes. The theme
+ * below only maps Tailwind's utility names to those variables, so the light
+ * theme switches by itself and nothing here holds a value of its own.
+ * Components (`cp-button`, `cp-link`, `cp-notice`, `cp-keycap`, `cp-glass`,
+ * …) come from the same file.
  *
- * Flagged deviations from the token doc (per its "don't silently adjust" rule):
- * - `--color-ink: #141417` / `--color-browser: #0F0F12` / `--color-body: #B8B8C0`
- *   / `--color-draw-hover: #C4B0FC` / `--color-save-ink: #0A2E1B` come from the
- *   landing mock, not the token doc.
- * - `--color-error: #FCA5A5` (soft red for errors) comes from the Capann
- *   Premium website brief (/verify, /view-my-links, /upgraded), not the token doc.
- * - `--color-brand-paper: #F6F5F2` is the brand sheet's "paper", not the token
- *   doc: the landing page's one light panel ("Why go Premium?") uses it.
- * - Toolbar icon boxes render at 34px tall in the landing mock; the token doc
- *   only fixes panel width (216px), padding (14px) and swatch size (18px).
- * - Light theme: the light values are under `:root[data-theme="light"]` below,
- *   on the brand paper (#F6F5F2). Violet text #6D4AE0, mint text #15803D,
- *   cream text #A16207, and error #B42318 are darker companions of the token
- *   colours so text stays readable on paper (the buttons keep #A78BFA).
- * - The playground uses the same page as the rest of the site; its
- *   sample pages keep their own palettes (`src/playground/playground.css`).
+ * Utility names (kept so existing classes keep working):
+ *   page:   canvas, fg (text), body, muted, line, accent (violet text),
+ *           rec-text (mint text), error, track, panel, elevated,
+ *           inverse / on-inverse (the "Why go Premium?" panel)
+ *   fixed:  ink, paper (light text on ink), brand-paper, browser,
+ *           draw / draw-hover (the violet buttons), rec (mint), save-ink
+ * Fonts (`font-sans`) and motion (`ease-morph`, `duration-morph`) read the
+ * design file's variables of the same name. Playground sample pages keep
+ * their own palettes (`src/playground/playground.css`).
  */
 
 @theme {
-  /* ---- Surfaces (token doc: Surfaces) ---- */
-  --color-surface-base: #1c1c20;
-  --color-surface-elevated: #26262b;
-  --color-surface-translucent: rgba(28, 28, 32, 0.72);
-  --color-surface-base-dim: rgba(28, 28, 32, 0.85); /* collapsed 56px circle fill */
+  --color-canvas: var(--canvas);
+  --color-fg: var(--text-primary);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-line: var(--line);
+  --color-accent: var(--text-accent);
+  --color-rec-text: var(--text-success);
+  --color-error: var(--text-error);
+  --color-track: var(--track);
+  --color-panel: var(--surface-base);
+  --color-elevated: var(--surface-elevated);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
 
-  /* ---- Borders (token doc: Borders) ---- */
-  --color-border-hairline: rgba(255, 255, 255, 0.08);
-  --color-border-hairline-strong: rgba(255, 255, 255, 0.15);
-  --color-track: rgba(255, 255, 255, 0.12); /* size-slider track */
-
-  /* ---- Accents (token doc: Accent colors) ---- */
-  --color-accent-violet: #a78bfa;
-  --color-accent-violet-soft: rgba(167, 139, 250, 0.18); /* active-tool fill */
-  --color-accent-violet-hover: #c4b0fc; /* landing-derived hover */
-  --color-accent-mint: #86efac;
-  --color-accent-cream: #f5e8a6;
-  --color-save-ink: #0a2e1b; /* Save-button text on mint */
-  --color-error: #fca5a5; /* Premium pages: errors (flagged above) */
-
-  /* ---- Text (token doc: Text) ---- */
-  --color-text-primary: #f5f5f7;
-  --color-text-muted: #8b8b93;
-  --color-text-body: #b8b8c0; /* landing-derived body copy */
-
-  /* ---- Page chrome (landing-derived, not in token doc) ---- */
-  --color-ink: #141417;
-  --color-brand-paper: #f6f5f2; /* brand sheet paper: light panels (flagged above) */
-  --color-browser: #0f0f12;
-
-  /* ---- Site theme (dark default; light values under [data-theme="light"]) ----
-   * Semantic colours for the website's pages. Fixed brand colours (`ink`,
-   * `paper`, `brand-paper`, `draw`, `rec`, `hl`) never flip, so buttons on
-   * violet and the "Why go Premium?" illustrations look the same in both. */
-  --color-canvas: #141417; /* page */
-  --color-fg: #f5f5f7; /* primary text */
-  --color-line: rgba(255, 255, 255, 0.1); /* hairlines */
-  --color-accent: #a78bfa; /* violet as text, icons, focus, active states */
-  --color-rec-text: #86efac; /* mint as text */
-  --color-hl-text: #f5e8a6; /* cream as text */
-  --color-inverse: #f6f5f2; /* the one contrasting panel ("Why go Premium?") */
-  --color-on-inverse: #141417;
-
-  /* ---- Landing aliases (keep existing classes working) ---- */
-  --color-panel: var(--color-surface-base);
-  --color-elevated: var(--color-surface-elevated);
-  --color-paper: #f5f5f7; /* fixed light text (on ink); page text is `fg` */
-  --color-body: var(--color-text-body);
-  --color-muted: var(--color-text-muted);
-  --color-draw: var(--color-accent-violet);
-  --color-draw-hover: var(--color-accent-violet-hover);
-  --color-rec: var(--color-accent-mint);
-  --color-hl: var(--color-accent-cream);
-
-  /* ---- Radius (token doc: Radius) ---- */
-  --radius-panel: 28px;
-  --radius-icon: 12px;
-  --radius-pill: 999px;
-
-  /* ---- Motion (token doc: Motion) ----
-   * `--ease-morph` maps to the `ease-morph` utility. Durations/delays are
-   * exposed as vars plus explicit utilities below. */
-  --ease-morph: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --dur-morph: 180ms;
-  --stagger-row: 50ms;
+  --color-ink: var(--ink);
+  --color-paper: var(--on-ink);
+  --color-brand-paper: var(--paper);
+  --color-browser: var(--browser);
+  --color-draw: var(--accent-violet);
+  --color-draw-hover: var(--accent-violet-hover);
+  --color-rec: var(--accent-mint);
+  --color-save-ink: var(--save-ink);
 
   /* Playground's mobile notice fading in. */
   --animate-pg-fade-in: pg-fade-in 280ms ease-out;
@@ -106,84 +57,18 @@
       opacity: 1;
     }
   }
-
-  /* ---- Typography (token doc: Typography) ----
-   * Doc suggests Inter/Manrope/Sora, 400 body + 500 labels, 13px base.
-   * Landing uses Sora + Big Shoulders Display for display type. */
-  --font-sans: "Sora", system-ui, sans-serif;
-  --font-display: "Big Shoulders Display", sans-serif;
-
-  /* ---- Translucency (token doc: Translucency) ---- */
-  --blur-panel: 20px;
-
-  /* ---- Toolbar geometry (token doc: States) ---- */
-  --toolbar-collapsed: 56px;
-  --toolbar-expanded: 216px;
-  --toolbar-padding: 14px;
-  --swatch-size: 18px;
 }
 
 /* `light:` targets the light theme, e.g. `light:shadow-none`. */
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
-
-/*
- * Light theme: the brand's warm paper. Set on <html> by ThemeToggle (and
- * before first paint by the inline script in index.html). Only themed tokens
- * change; fixed brand colours stay as they are. Violet and mint as text are
- * darker here, so they stay readable on paper.
- */
-:root {
-  color-scheme: dark;
-  --shadow-float: 0 18px 50px rgba(0, 0, 0, 0.45);
-  --keycap-edge: rgba(0, 0, 0, 0.5);
-}
-:root[data-theme="light"] {
-  color-scheme: light;
-  --color-canvas: #f6f5f2;
-  --color-fg: #141417;
-  --color-line: rgba(20, 20, 23, 0.1);
-  --color-accent: #6d4ae0;
-  --color-rec-text: #15803d;
-  --color-hl-text: #a16207;
-  --color-inverse: #141417;
-  --color-on-inverse: #f5f5f7;
-  --color-surface-base: #ffffff;
-  --color-surface-elevated: #eceae5;
-  --color-surface-translucent: rgba(255, 255, 255, 0.78);
-  --color-surface-base-dim: rgba(255, 255, 255, 0.85);
-  --color-border-hairline: rgba(20, 20, 23, 0.1);
-  --color-border-hairline-strong: rgba(20, 20, 23, 0.16);
-  --color-track: rgba(20, 20, 23, 0.12);
-  --color-text-primary: #141417;
-  --color-text-muted: #5c5c66;
-  --color-text-body: #3a3a42;
-  --color-error: #b42318;
-  --shadow-float: 0 14px 40px rgba(20, 20, 23, 0.12);
-  --keycap-edge: rgba(20, 20, 23, 0.16);
-}
-
-/* Logos and other art made for one background: `on-dark` shows in the dark
-   theme, `on-light` in the light one. */
-.on-light {
-  display: none;
-}
-:root[data-theme="light"] .on-dark {
-  display: none;
-}
-:root[data-theme="light"] .on-light {
-  display: revert;
-}
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
 
+  /* Colours, font, and weight come from @capann/design. */
   body {
-    background: var(--color-canvas);
-    color: var(--color-fg);
-    font-family: var(--font-sans);
-    font-weight: 300;
     overflow-x: clip;
   }
 
@@ -204,33 +89,15 @@
   button:disabled {
     cursor: not-allowed;
   }
-
-  ::selection {
-    background: rgba(167, 139, 250, 0.32);
-  }
 }
 
-/* Display type shortcut (font-display utility already exists via --font-display;
- * this keeps the raw class working even without the utility pass). */
+/* The wordmark and the landing hero (Big Shoulders Display). */
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Frosted-glass panel: background + blur(20px) + hairline border. */
-.glass {
-  background: var(--color-surface-translucent);
-  border: 1px solid var(--color-border-hairline);
-  backdrop-filter: blur(var(--blur-panel));
-  -webkit-backdrop-filter: blur(var(--blur-panel));
-}
-
-/* Active tool: violet fill at 18% + violet icon. */
-.tool-active {
-  background: var(--color-accent-violet-soft);
-  color: var(--color-accent-violet);
-}
-
-/* Motion utilities (durations/delays have no Tailwind theme namespace). */
+/* Motion from @capann/design (durations and delays have no Tailwind theme
+   namespace). */
 .duration-morph {
   transition-duration: var(--dur-morph);
 }

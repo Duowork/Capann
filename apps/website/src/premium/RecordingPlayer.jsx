@@ -11,8 +11,7 @@ import { ArrowSquareOut, XCircle } from '@phosphor-icons/react'
 // the real duration; then it rewinds and plays. The extension's Links tab
 // (apps/extension/src/sidepanel/player-dialog.tsx) does the same.
 
-const ICON_BUTTON =
-  'inline-flex items-center justify-center w-10 h-10 flex-none rounded-full text-muted transition-colors hover:bg-fg/[0.08] hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
+const ICON_BUTTON = 'cp-icon-button w-10 h-10'
 
 export function RecordingPlayer({ item, title, onClose }) {
   const dialogRef = useRef(null)
@@ -59,7 +58,7 @@ export function RecordingPlayer({ item, title, onClose }) {
       onClick={(event) => {
         if (event.target === event.currentTarget) event.currentTarget.close()
       }}
-      className="w-[min(100vw-24px,960px)] max-w-none max-h-[calc(100dvh-24px)] m-auto p-4 sm:p-5 rounded-panel bg-panel text-fg shadow-[var(--shadow-float)] backdrop:bg-canvas/80 backdrop:backdrop-blur-sm"
+      className="w-[min(100vw-24px,960px)] max-w-none max-h-[calc(100dvh-24px)] m-auto p-4 sm:p-5 cp-dialog"
     >
       <div className="flex items-center gap-3 mb-4">
         <h2 id={titleId} className="flex-1 min-w-0 m-0 text-[15.5px] font-medium truncate">

@@ -54,7 +54,7 @@ export default function ThemeToggle({ className = '' }) {
       onClick={toggle}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
-      className={`inline-flex h-9 w-9 flex-none cursor-pointer items-center justify-center rounded-full bg-transparent text-muted transition-colors hover:bg-fg/[0.08] hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${className}`}
+      className={`cp-icon-button ${className}`}
     >
       <Icon size={20} weight="fill" aria-hidden="true" />
     </button>

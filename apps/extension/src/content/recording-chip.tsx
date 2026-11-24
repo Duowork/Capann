@@ -91,7 +91,7 @@ const NEXT_CAMERA_BUBBLE_SIZE: Record<CameraBubbleSize, CameraBubbleSize> = {
 };
 
 // The chip lives in its own shadow root, so the main overlay's CSS custom
-// properties are not inherited. These literals mirror design-tokens.md.
+// properties are not inherited. These literals mirror packages/design/capann.css.
 const styles: Record<string, CSSProperties> = {
   // Left-edge column: optional annotation bubble above the recording pill.
   dock: {
