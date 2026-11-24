@@ -3,41 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Capann — Show, don't tell | Annotate &amp; record any page</title>
+    <title>Capann: show, don't tell</title>
     <meta
       name="description"
-      content="Capann is the free browser extension for drawing, pointing and screenshots on any page. Upgrade once ($10) to record, download and share walkthroughs."
+      content="Capann is the free browser extension to draw, point, screenshot and record any page. Premium ($7/month) shares recordings as links you can play back."
     />
     <link rel="canonical" href="https://capann.duowork.tech/" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="author" content="Duowork" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#141417" />
+    <!-- Apply a saved light theme before the first paint (see src/components/ThemeToggle.jsx). -->
+    <script>
+      try {
+        if (localStorage.getItem('capann-theme') === 'light') {
+          document.documentElement.dataset.theme = 'light'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F6F5F2')
+        }
+      } catch (e) {}
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Capann" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://capann.duowork.tech/" />
-    <meta property="og:title" content="Capann — Show, don't tell" />
+    <meta property="og:title" content="Capann: show, don't tell" />
     <meta
       property="og:description"
-      content="Annotate any webpage free. Upgrade once ($10) to record, download and share walkthroughs."
+      content="Annotate and record any webpage free. Premium ($7/month) shares your recordings as links."
     />
     <meta property="og:image" content="https://capann.duowork.tech/og-image.png" />
-    <meta property="og:image:alt" content="Capann logo — screen annotation and recording for your browser" />
+    <meta property="og:image:alt" content="Capann logo: screen annotation and recording for your browser" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
 
     <!-- X (Twitter) -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Capann — Show, don't tell" />
+    <meta name="twitter:title" content="Capann: show, don't tell" />
     <meta
       name="twitter:description"
-      content="Annotate any webpage free. Upgrade once ($10) to record, download and share walkthroughs."
+      content="Annotate and record any webpage free. Premium ($7/month) shares your recordings as links."
     />
     <meta name="twitter:image" content="https://capann.duowork.tech/og-image.png" />
-    <meta name="twitter:image:alt" content="Capann logo — screen annotation and recording for your browser" />
+    <meta name="twitter:image:alt" content="Capann logo: screen annotation and recording for your browser" />
 
     <link rel="icon" href="/favicon/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16.png" />
@@ -53,17 +62,36 @@
         "name": "Capann",
         "applicationCategory": "BrowserApplication",
         "operatingSystem": "Chrome, Edge, Brave",
-        "description": "Free browser extension for drawing, pointing and screenshots on any page. $10 one-time Pro unlock adds screen/camera recording, downloads and 7-day share links.",
+        "description": "Free browser extension for drawing, pointing, screenshots and tab recording on any page. Premium ($7/month) adds 7-day share links with playback, marks that scroll with the page, and screenshot styling.",
         "url": "https://capann.duowork.tech/",
         "author": { "@type": "Organization", "name": "Duowork", "url": "https://duowork.tech" },
         "offers": [
           { "@type": "Offer", "name": "Capann Free", "price": "0", "priceCurrency": "USD" },
           {
             "@type": "Offer",
-            "name": "Capann Pro",
-            "description": "One-time payment for permanent Pro access. No subscription, no renewal.",
-            "price": "10",
-            "priceCurrency": "USD"
+            "name": "Capann Premium",
+            "description": "Monthly subscription: 7-day share links with playback, marks that scroll with the page, and screenshot styling.",
+            "price": "7",
+            "priceCurrency": "USD",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "7",
+              "priceCurrency": "USD",
+              "referenceQuantity": { "@type": "QuantitativeValue", "value": 1, "unitCode": "MON" }
+            }
+          },
+          {
+            "@type": "Offer",
+            "name": "Capann Premium, pay-per-day",
+            "description": "Premium for 1 to 30 days, paid once. No subscription.",
+            "price": "0.50",
+            "priceCurrency": "USD",
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "0.50",
+              "priceCurrency": "USD",
+              "referenceQuantity": { "@type": "QuantitativeValue", "value": 1, "unitCode": "DAY" }
+            }
           }
         ]
       }

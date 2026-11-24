@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
-import { ArrowClockwise, ArrowSquareOut, Check, Copy, LinkSimple, Timer } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowSquareOut, Check, Copy, LinkSimple, Play, Timer } from '@phosphor-icons/react'
 import { ApiError, listLinks } from '@capann/api-client'
 import { RETENTION_DAYS } from '@capann/contract'
 import { API_URL } from '../premium/config.js'
 import { usePrivatePage } from '../premium/usePrivatePage.js'
 import { Card, Notice, PageHeading, PremiumLayout, SECONDARY_BUTTON, StatusLine } from '../premium/PremiumLayout.jsx'
+import { RecordingPlayer } from '../premium/RecordingPlayer.jsx'
 
 // /view-my-links?token=… — link recovery, emailed from the side panel's
 // "Lost a link?". The links token lasts 15 minutes and is reusable, so loading
-// on page load (and on reload) is fine.
+// on page load (and on reload) is fine. "Play" opens a recording in a modal
+// player (session playback), on this page; there is no separate watch page.
 
 const EXPIRED_TOKEN = 'This link expired. Request a new one from Capann’s side panel (Lost a link?).'
 const TICK_MS = 30_000
@@ -95,7 +97,7 @@ function Countdown({ remainingMs }) {
   const tone = expired
     ? 'border-border-hairline text-text-muted'
     : soon
-      ? 'border-accent-cream/35 bg-accent-cream/10 text-accent-cream'
+      ? 'border-accent-cream/35 bg-accent-cream/10 text-hl-text'
       : 'border-border-hairline-strong text-text-body'
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill border text-[12.5px] leading-none tabular-nums ${tone}`}>
@@ -105,7 +107,7 @@ function Countdown({ remainingMs }) {
   )
 }
 
-function LinkRow({ item, remainingMs, onCopied }) {
+function LinkRow({ item, remainingMs, onCopied, onPlay }) {
   const [copyState, setCopyState] = useState(null) // null | 'copied' | 'failed'
   const resetTimer = useRef(0)
   useEffect(() => () => clearTimeout(resetTimer.current), [])
@@ -123,7 +125,7 @@ function LinkRow({ item, remainingMs, onCopied }) {
     resetTimer.current = setTimeout(() => setCopyState(null), COPIED_MS)
   }
 
-  const smallButton = 'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-pill text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-violet'
+  const smallButton = 'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-pill text-[13.5px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
 
   return (
     <li className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center p-5 sm:px-6 rounded-[22px] bg-surface-base border border-border-hairline">
@@ -147,13 +149,22 @@ function LinkRow({ item, remainingMs, onCopied }) {
       </div>
 
       {!expired && (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onPlay(item)}
+            aria-describedby={labelId}
+            className={`${smallButton} flex-1 sm:flex-none font-medium bg-accent-violet text-ink hover:bg-accent-violet-hover`}
+          >
+            <Play size={15} weight="fill" aria-hidden="true" />
+            Play
+          </button>
           <button
             type="button"
             onClick={handleCopy}
             aria-describedby={labelId}
             className={`${smallButton} flex-1 sm:flex-none min-w-[118px] font-medium ${
-              copyState === 'copied' ? 'bg-accent-mint text-save-ink' : 'bg-accent-violet text-ink hover:bg-accent-violet-hover'
+              copyState === 'copied' ? 'bg-accent-mint text-save-ink' : 'border border-border-hairline-strong text-text-primary hover:bg-surface-elevated'
             }`}
           >
             {copyState === 'copied' ? (
@@ -188,12 +199,28 @@ function LinkRow({ item, remainingMs, onCopied }) {
 function LinkList({ items, skewMs, onCopied }) {
   const now = useClock(TICK_MS)
   const serverNow = now + skewMs
+  const [playing, setPlaying] = useState(null)
   return (
-    <ul className="flex flex-col gap-3 mt-8 mb-0 p-0 list-none">
-      {items.map((item) => (
-        <LinkRow key={item.id} item={item} remainingMs={Date.parse(item.expiresAt) - serverNow} onCopied={onCopied} />
-      ))}
-    </ul>
+    <>
+      <ul className="flex flex-col gap-3 mt-8 mb-0 p-0 list-none">
+        {items.map((item) => (
+          <LinkRow
+            key={item.id}
+            item={item}
+            remainingMs={Date.parse(item.expiresAt) - serverNow}
+            onCopied={onCopied}
+            onPlay={(link) => setPlaying(link)}
+          />
+        ))}
+      </ul>
+      {playing && (
+        <RecordingPlayer
+          item={playing}
+          title={`Recording from ${formatUploaded(playing.uploadedAt)}`}
+          onClose={() => setPlaying(null)}
+        />
+      )}
+    </>
   )
 }
 
@@ -250,7 +277,7 @@ export default function ViewMyLinksPage() {
       <PremiumLayout>
         <Card>
           <PageHeading>
-            YOUR <span className="text-accent-violet">LINKS</span>
+            YOUR <span className="text-accent">LINKS</span>
           </PageHeading>
           <Notice tone="error" role="alert" title="This page needs the link from your email">
             Request a new one from Capann’s side panel (Lost a link?).
@@ -269,7 +296,7 @@ export default function ViewMyLinksPage() {
       {ready ? (
         <>
           <PageHeading>
-            Links for <span className="text-accent-violet">{state.data.email}</span>
+            Links for <span className="text-accent">{state.data.email}</span>
           </PageHeading>
           {items.length > 0 && (
             <p className="mt-5 mb-0 text-[16px] leading-[1.7] text-text-body">
@@ -279,7 +306,7 @@ export default function ViewMyLinksPage() {
         </>
       ) : (
         <PageHeading>
-          YOUR <span className="text-accent-violet">LINKS</span>
+          YOUR <span className="text-accent">LINKS</span>
         </PageHeading>
       )}
 

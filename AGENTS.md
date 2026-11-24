@@ -59,7 +59,8 @@ code that crosses between them lives in `packages/`.
 - **Root scripts:** `npm run typecheck` (every workspace); `build`, `build:free`,
   `build:premium`, `build:backend`, `watch*` (extension); `test:wiring`,
   `test:premium`; `api:dev`, `api:test`, `api:deploy`; `website:dev`,
-  `website:build`, `website:preview`, `website:lint`.
+  `website:build`, `website:preview`, `website:lint`, `website:capture` (the
+  website's product shots, from the real extension).
 - **Deploys:** the API with `npm run api:deploy` (Wrangler). The website is
   deployed by GitHub Actions (`.github/workflows/website.yml`) to this
   repository's GitHub Pages: every push to `main` that touches

@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { CheckCircle, CircleNotch, Info, WarningCircle } from '@phosphor-icons/react'
 import SiteFooter from '../components/SiteFooter.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 import { INSTALL_URL } from './config.js'
 
 // Shared chrome for the Capann Premium pages (/verify, /view-my-links,
@@ -9,7 +10,7 @@ import { INSTALL_URL } from './config.js'
 
 const BASE = import.meta.env.BASE_URL
 
-const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-violet'
+const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent'
 
 export const PRIMARY_BUTTON = `inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-pill bg-accent-violet text-ink text-[14.5px] font-medium transition-colors hover:bg-accent-violet-hover disabled:opacity-70 disabled:hover:bg-accent-violet ${FOCUS_RING}`
 
@@ -17,16 +18,17 @@ export const SECONDARY_BUTTON = `inline-flex items-center justify-center gap-2 p
 
 export function PremiumLayout({ wide = false, children }) {
   return (
-    <div className="min-h-screen flex flex-col bg-ink text-text-primary font-sans">
+    <div className="min-h-screen flex flex-col bg-canvas text-text-primary font-sans">
       <header className="fixed top-0 inset-x-0 z-50 px-[clamp(12px,3vw,32px)] pt-3">
         <nav
           aria-label="Primary"
-          className="glass max-w-[1280px] mx-auto flex items-center gap-3 md:gap-7 px-3.5 md:px-7 py-3.5 rounded-[28px] shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
+          className="glass max-w-[1280px] mx-auto flex items-center gap-3 md:gap-7 px-3.5 md:px-7 py-3.5 rounded-[28px] shadow-[var(--shadow-float)]"
         >
           <Link to="/" className={`flex items-center gap-2 md:gap-3 mr-auto rounded-full ${FOCUS_RING} focus-visible:outline-offset-4`}>
-            <img src={`${BASE}svg/capann-icon-light.svg`} alt="" className="w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
+            <img src={`${BASE}svg/capann-icon-light.svg`} alt="" className="on-dark w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
+            <img src={`${BASE}svg/capann-icon-dark.svg`} alt="" className="on-light w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
             <span className="font-display font-bold text-[23px] md:text-[29px] leading-none tracking-[0.03em]">
-              CAPA<span className="text-accent-violet">NN</span>
+              CAPA<span className="text-accent">NN</span>
             </span>
           </Link>
           <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full border border-border-hairline text-[10.5px] uppercase tracking-[0.16em] text-text-muted">
@@ -35,6 +37,7 @@ export function PremiumLayout({ wide = false, children }) {
           <Link to="/" className="text-[13.5px] text-text-muted hover:text-text-primary transition-colors">
             Back to site
           </Link>
+          <ThemeToggle className="-mr-2" />
         </nav>
       </header>
 
@@ -53,7 +56,7 @@ export function PremiumLayout({ wide = false, children }) {
 
 export function Card({ children }) {
   return (
-    <div className="rounded-panel bg-surface-base border border-border-hairline p-[clamp(24px,5vw,44px)] shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+    <div className="rounded-panel bg-surface-base border border-border-hairline p-[clamp(24px,5vw,44px)] shadow-[var(--shadow-float)]">
       {children}
     </div>
   )
@@ -91,7 +94,7 @@ export function StatusLine({ busy = false, quiet = false, children }) {
     <p role="status" className="flex items-center gap-2.5 min-h-[22px] mt-6 mb-0 text-[14px] leading-[1.5] text-text-body">
       {children &&
         (busy ? (
-          <Spinner className="text-accent-violet" />
+          <Spinner className="text-accent" />
         ) : (
           <span aria-hidden="true" className="w-2 h-2 flex-none rounded-full bg-accent-mint" />
         ))}
@@ -102,8 +105,8 @@ export function StatusLine({ busy = false, quiet = false, children }) {
 
 const NOTICE_TONES = {
   error: { box: 'border-error/30 bg-error/[0.07]', icon: 'text-error', Icon: WarningCircle },
-  success: { box: 'border-accent-mint/30 bg-accent-mint/[0.07]', icon: 'text-accent-mint', Icon: CheckCircle },
-  info: { box: 'border-border-hairline-strong bg-surface-elevated', icon: 'text-accent-violet', Icon: Info },
+  success: { box: 'border-accent-mint/30 bg-accent-mint/[0.07]', icon: 'text-rec-text', Icon: CheckCircle },
+  info: { box: 'border-border-hairline-strong bg-surface-elevated', icon: 'text-accent', Icon: Info },
 }
 
 export function Notice({ tone = 'info', role, title, actions, children }) {

@@ -99,15 +99,15 @@ export default function UpgradedPage() {
   return (
     <PremiumLayout>
       <Card>
-        {paid && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-accent-mint" />}
+        {paid && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-rec-text" />}
         <PageHeading>
           {paid ? (
             <>
-              PREMIUM IS <span className="text-accent-mint">ACTIVE</span>
+              PREMIUM IS <span className="text-rec-text">ACTIVE</span>
             </>
           ) : (
             <>
-              FINISHING YOUR <span className="text-accent-violet">UPGRADE</span>
+              FINISHING YOUR <span className="text-accent">UPGRADE</span>
             </>
           )}
         </PageHeading>

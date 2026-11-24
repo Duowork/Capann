@@ -154,7 +154,7 @@ export default function VerifyPage() {
       <PremiumLayout>
         <Card>
           <PageHeading>
-            SIGN IN TO CAPA<span className="text-accent-violet">NN</span>
+            SIGN IN TO CAPA<span className="text-accent">NN</span>
           </PageHeading>
           <Notice tone="error" role="alert" title="This page needs the sign-in link from your email">
             Open the link in the email Capann sent you, or request a new one from Capann’s Record view.
@@ -179,15 +179,15 @@ export default function VerifyPage() {
   return (
     <PremiumLayout>
       <Card>
-        {done && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-accent-mint" />}
+        {done && <CheckCircle size={44} weight="fill" aria-hidden="true" className="mb-6 text-rec-text" />}
         <PageHeading>
           {done ? (
             <>
-              YOU’RE SIGNED <span className="text-accent-mint">IN</span>
+              YOU’RE SIGNED <span className="text-rec-text">IN</span>
             </>
           ) : (
             <>
-              SIGN IN TO CAPA<span className="text-accent-violet">NN</span>
+              SIGN IN TO CAPA<span className="text-accent">NN</span>
             </>
           )}
         </PageHeading>

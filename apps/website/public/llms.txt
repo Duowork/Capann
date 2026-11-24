@@ -1,12 +1,12 @@
 # Capann
 
-> Browser extension for visual annotation and screen recording. Annotate any webpage free; upgrade once to record, download and share.
+> Browser extension for visual annotation and tab recording. Annotate, screenshot and record any webpage free; Premium ($7/month) shares recordings as links.
 
-- **Product:** Capann — draw, highlight, arrows, shapes, text callouts, laser pointer, spotlight, eraser, persistent per-tab annotations, PNG screenshot export (all free); Pro adds screen/camera recording, local video downloads, shareable links.
-- **Pricing:** Free ($0) for annotation. Pro is $10 one-time for permanent access — no subscription, no renewal.
+- **Product:** Capann: draw, highlight, arrows, shapes, text and comment bubbles, select/move/resize, laser pointer, spotlight, zoom lens, eraser, persistent per-tab annotations, PNG and area screenshots, and recording the current tab with camera, microphone and tab audio to a local video file (all free). Premium adds shareable recording links with one-click playback, marks that scroll with the page, and screenshot styling (background, padding, corners, shadow, border).
+- **Pricing:** Free ($0) for annotation, screenshots and recording. Premium is $7 a month (subscription), or Pay-per-day: $0.50 a day for 1 to 30 days, paid once (monthly is cheaper from 15 days).
 - **Sharing:** Shareable recording links expire after seven days. Downloaded video files never expire. Recipients watch without installing Capann or creating an account.
 - **Annotations** float above the webpage and never permanently modify the underlying page.
-- **Browsers:** Chromium-based — Chrome, Edge, Brave.
-- **Maker:** [Duowork](https://duowork.tech) — "We build engines around how people and businesses work."
+- **Browsers:** Chromium browsers: Chrome, Edge, Brave.
+- **Maker:** [Duowork](https://duowork.tech): "We build engines around how people and businesses work."
 - **Site:** [https://capann.duowork.tech/](https://capann.duowork.tech/)
-- **Shortcuts:** Alt+Shift+S toggle draw mode · Alt+Shift+T next tool · Alt+Shift+C clear · Esc exit draw mode
+- **Shortcuts:** Alt+Shift+S open Capann (stop a recording) · Alt+Shift+T next tool (pause/resume) · Alt+Shift+C clear (discard a recording) · Esc exit draw mode

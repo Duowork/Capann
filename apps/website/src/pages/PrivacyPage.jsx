@@ -1,42 +1,38 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router'
-import { ArrowRight } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
 import SiteFooter from '../components/SiteFooter.jsx'
+import SiteHeader from '../components/SiteHeader.jsx'
 
-const BASE = import.meta.env.BASE_URL
+// /privacy: the policy text is the owner's and stays word for word. Layout
+// follows the site's design approach (apps/website/AGENTS.md).
 
 const SECTIONS = [
-  ['information-we-handle', 'Information We Handle'],
-  ['how-we-use-information', 'How We Use Information'],
-  ['data-processing-storage-transmission', 'Data Processing, Storage, and Transmission'],
-  ['third-party-service-providers-and-analytics', 'Third-Party Service Providers and Analytics'],
-  ['browser-permissions', 'Browser Permissions'],
-  ['retention-and-deletion', 'Data Retention and Deletion'],
+  ['information-we-handle', 'Information we handle'],
+  ['how-we-use-information', 'How we use information'],
+  ['data-processing-storage-transmission', 'Data processing, storage, and transmission'],
+  ['third-party-service-providers-and-analytics', 'Third-party service providers and analytics'],
+  ['browser-permissions', 'Browser permissions'],
+  ['retention-and-deletion', 'Data retention and deletion'],
   ['security', 'Security'],
-  ['childrens-privacy', 'Children’s Privacy'],
-  ['changes', 'Changes to This Policy'],
-  ['contact', 'Contact Us'],
+  ['childrens-privacy', 'Children’s privacy'],
+  ['changes', 'Changes to this policy'],
+  ['contact', 'Contact us'],
 ]
+const TITLES = Object.fromEntries(SECTIONS)
 
 function Paragraph({ children }) {
-  return <p className="mt-4 mb-0 text-[15px] leading-[1.8] text-body max-w-[72ch]">{children}</p>
+  return <p className="mt-4 mb-0 text-[15.5px] leading-[1.8] text-body max-w-[70ch]">{children}</p>
 }
 
 function SubHeading({ children }) {
-  return (
-    <h3 className="flex items-center gap-2.5 mt-8 mb-0 first:mt-7 text-[15.5px] font-medium leading-[1.5] text-paper">
-      <span aria-hidden="true" className="w-1.5 h-1.5 flex-none rounded-full bg-draw" />
-      {children}
-    </h3>
-  )
+  return <h3 className="mt-8 mb-0 first:mt-6 text-[16px] font-medium leading-[1.5] text-fg">{children}</h3>
 }
 
 function Bullets({ items }) {
   return (
-    <ul className="flex flex-col gap-2.5 mt-4 mb-0 p-0 list-none max-w-[72ch]">
+    <ul className="flex flex-col gap-2.5 mt-4 mb-0 p-0 list-none max-w-[70ch]">
       {items.map(([lead, text], index) => (
-        <li key={index} className="relative pl-5 text-[15px] leading-[1.75] text-body before:content-[''] before:absolute before:left-0 before:top-[0.7em] before:w-1 before:h-1 before:rounded-full before:bg-draw">
-          {lead && <strong className="font-medium text-paper">{lead} </strong>}
+        <li key={index} className="relative pl-5 text-[15.5px] leading-[1.75] text-body before:content-[''] before:absolute before:left-0 before:top-[0.72em] before:w-1 before:h-1 before:rounded-full before:bg-muted">
+          {lead && <strong className="font-medium text-fg">{lead} </strong>}
           {text}
         </li>
       ))}
@@ -44,93 +40,100 @@ function Bullets({ items }) {
   )
 }
 
-function Section({ id, title, children }) {
+function Section({ id, children }) {
   return (
-    <section id={id} aria-labelledby={`${id}-heading`} className="scroll-mt-24 border-t border-white/10 pt-10 mt-10 first:border-t-0 first:pt-0 first:mt-0">
-      <h2 id={`${id}-heading`} className="font-display font-bold text-[clamp(26px,3vw,34px)] leading-[1.05] tracking-[0.01em] m-0">
-        {title}
+    <section id={id} aria-labelledby={`${id}-heading`} className="scroll-mt-28 border-t border-line pt-12 mt-12 first:border-t-0 first:pt-0 first:mt-0">
+      <h2 id={`${id}-heading`} className="m-0 text-[clamp(24px,2.6vw,30px)] font-medium tracking-[-0.02em] leading-[1.2]">
+        {TITLES[id]}
       </h2>
-      <div className="mt-3">{children}</div>
+      <div className="mt-2">{children}</div>
     </section>
   )
 }
 
-export default function PrivacyPage() {
+/** The section being read: the last one whose heading has passed under the header. */
+function useActiveSection() {
+  const [active, setActive] = useState(SECTIONS[0][0])
   useEffect(() => {
-    document.title = 'Capann Privacy Policy — what we access and how it is handled'
+    let frame = 0
+    const update = () => {
+      frame = 0
+      let current = SECTIONS[0][0]
+      for (const [id] of SECTIONS) {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= 160) current = id
+      }
+      // At the very bottom, the last section is the one being read.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = SECTIONS.at(-1)[0]
+      setActive(current)
+    }
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    update()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [])
+  return active
+}
+
+export default function PrivacyPage() {
+  const active = useActiveSection()
+
+  useEffect(() => {
+    document.title = 'Capann privacy policy'
   }, [])
 
   return (
-    <div className="min-h-screen bg-ink text-paper font-sans">
-      <header className="fixed top-0 inset-x-0 z-50 px-[clamp(12px,3vw,32px)] pt-3">
-        <nav
-          aria-label="Primary"
-          className="glass max-w-[1280px] mx-auto flex items-center gap-3 md:gap-7 px-3.5 md:px-7 py-3.5 rounded-[28px] shadow-[0_18px_50px_rgba(0,0,0,0.45)]"
-        >
-          <Link to="/" className="flex items-center gap-2 md:gap-3 mr-auto rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-draw">
-            <img src={`${BASE}svg/capann-icon-light.svg`} alt="" className="w-[26px] h-[26px] md:w-[30px] md:h-[30px]" />
-            <span className="font-display font-bold text-[23px] md:text-[29px] leading-none tracking-[0.03em]">
-              CAPA<span className="text-draw">NN</span>
-            </span>
-          </Link>
-          <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full border border-white/10 text-[10.5px] uppercase tracking-[0.16em] text-muted">
-            Privacy
-          </span>
-          <Link to="/" className="hidden md:inline text-[13.5px] text-muted hover:text-paper transition-colors">
-            Back to site
-          </Link>
-          <a href={`${BASE}#pricing`} className="inline-flex items-center gap-1.5 px-4 md:px-5 py-2 md:py-2.5 rounded-full bg-draw text-ink text-[12px] md:text-[13.5px] font-medium hover:bg-draw-hover transition-colors">
-            Get Capann
-            <ArrowRight size={13} weight="bold" aria-hidden="true" />
-          </a>
-        </nav>
-      </header>
+    <div className="min-h-screen bg-canvas text-fg font-sans">
+      <SiteHeader />
 
-      <main className="max-w-[1280px] mx-auto px-[clamp(20px,5vw,56px)] pt-[118px] md:pt-[132px]">
-        {/* Hero */}
-        <div className="max-w-[78ch] pb-12">
-          <div className="text-xs tracking-[0.16em] uppercase text-muted mb-4">Legal</div>
-          <h1 className="font-display font-bold leading-[0.9] tracking-[0.01em] m-0 text-[clamp(52px,7vw,88px)]">
-            PRIVACY <span className="text-draw">POLICY</span>
-          </h1>
+      <main className="max-w-[1280px] mx-auto px-[clamp(20px,5vw,56px)] pt-[96px]">
+        <div className="max-w-[72ch] pt-[clamp(40px,6vw,80px)] pb-[clamp(48px,7vw,88px)]">
+          <h1 className="m-0 font-medium tracking-[-0.03em] leading-[1.04] text-[clamp(40px,5.4vw,72px)]">Privacy policy</h1>
           <p className="mt-6 mb-0 text-[17px] leading-[1.66] text-body max-w-[62ch]">
             Capann is a browser extension developed by Duowork that helps people communicate visually on webpages through drawing, pointing, highlighting, screenshots, and screen recordings.
           </p>
           <p className="mt-4 mb-0 text-[17px] leading-[1.66] text-body max-w-[62ch]">
             This Privacy Policy explains what information Capann processes, how it is used and stored, when it is shared, and how users can exercise control over their information.
           </p>
-          <dl className="flex flex-wrap gap-x-10 gap-y-3 mt-8 text-[13px] text-muted">
-            <div className="flex items-center gap-2">
-              <dt className="tracking-[0.08em] uppercase">Effective date</dt>
-              <dd className="m-0 text-body"><time dateTime="2026-10-28">October 28, 2026</time></dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <dt className="tracking-[0.08em] uppercase">Last updated</dt>
-              <dd className="m-0 text-body"><time dateTime="2026-10-28">October 28, 2026</time></dd>
-            </div>
-          </dl>
+          <p className="mt-8 mb-0 text-[14px] text-muted">
+            Effective <time dateTime="2026-10-28">October 28, 2026</time> · Updated <time dateTime="2026-10-28">October 28, 2026</time>
+          </p>
         </div>
 
-        <div className="grid gap-y-10 pb-16 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-x-16">
-          {/* On-page contents */}
+        <div className="grid gap-y-10 pb-[clamp(72px,10vw,128px)] border-t border-line pt-12 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-x-16">
           <aside className="hidden lg:block">
-            <nav aria-label="On this page" className="sticky top-32 pt-1">
-              <div className="text-[11px] tracking-[0.16em] uppercase text-muted mb-4">On this page</div>
-              <ol className="flex flex-col gap-1 m-0 p-0 list-none">
-                {SECTIONS.map(([id, label], index) => (
-                  <li key={id}>
-                    <a href={`#${id}`} className="group flex items-baseline gap-3 rounded-lg py-1.5 text-[13.5px] leading-[1.45] text-body hover:text-paper transition-colors">
-                      <span aria-hidden="true" className="text-[11px] tabular-nums text-muted group-hover:text-draw transition-colors">{String(index + 1).padStart(2, '0')}</span>
-                      {label}
-                    </a>
-                  </li>
-                ))}
+            <nav aria-label="On this page" className="sticky top-28">
+              <h2 className="m-0 mb-3 text-[14px] font-medium text-fg">On this page</h2>
+              <ol className="flex flex-col m-0 p-0 list-none border-l border-line">
+                {SECTIONS.map(([id, label]) => {
+                  const current = id === active
+                  return (
+                    <li key={id}>
+                      <a
+                        href={`#${id}`}
+                        aria-current={current ? 'location' : undefined}
+                        className={`-ml-px block border-l-2 py-1.5 pl-4 text-[14px] leading-[1.45] transition-colors ${
+                          current ? 'border-accent text-fg' : 'border-transparent text-muted hover:text-fg'
+                        }`}
+                      >
+                        {label}
+                      </a>
+                    </li>
+                  )
+                })}
               </ol>
             </nav>
           </aside>
 
           <div className="max-w-[76ch]">
-            <Section id="information-we-handle" title="1. Information We Handle">
+            <Section id="information-we-handle">
               <SubHeading>Webpage content</SubHeading>
               <Paragraph>
                 When you activate Capann on a webpage, the extension accesses the active tab as necessary to provide annotation and capture features you initiate.
@@ -174,7 +177,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="how-we-use-information" title="2. How We Use Information">
+            <Section id="how-we-use-information">
               <Paragraph>Capann uses information to:</Paragraph>
               <Bullets
                 items={[
@@ -192,7 +195,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="data-processing-storage-transmission" title="3. Data Processing, Storage, and Transmission">
+            <Section id="data-processing-storage-transmission">
               <Paragraph>
                 Capann processes annotations and captures in the browser when users use those features.
               </Paragraph>
@@ -210,7 +213,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="third-party-service-providers-and-analytics" title="4. Third-Party Service Providers and Analytics">
+            <Section id="third-party-service-providers-and-analytics">
               <Paragraph>
                 Duowork does not sell users’ personal information.
               </Paragraph>
@@ -231,7 +234,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="browser-permissions" title="5. Browser Permissions">
+            <Section id="browser-permissions">
               <Paragraph>
                 Capann requests permissions necessary to provide its functionality. Depending on the installed version, these may include:
               </Paragraph>
@@ -253,7 +256,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="retention-and-deletion" title="6. Data Retention and Deletion">
+            <Section id="retention-and-deletion">
               <Paragraph>
                 Capann intends to implement automatic deletion of shared content after seven days. Until that mechanism is implemented and verified, shared content may remain accessible through its shareable link, and users should not rely on seven-day deletion as a guaranteed retention limit.
               </Paragraph>
@@ -274,7 +277,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="security" title="7. Security">
+            <Section id="security">
               <Paragraph>
                 Duowork takes reasonable measures to protect information handled by Capann against unauthorized access, disclosure, alteration, or destruction.
               </Paragraph>
@@ -286,7 +289,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="childrens-privacy" title="8. Children’s Privacy">
+            <Section id="childrens-privacy">
               <Paragraph>
                 Capann is a general-purpose productivity tool and is not specifically designed to collect personal information from children.
               </Paragraph>
@@ -295,7 +298,7 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="changes" title="9. Changes to This Policy">
+            <Section id="changes">
               <Paragraph>
                 This Privacy Policy may be updated when Capann’s features, data practices, or legal obligations change.
               </Paragraph>
@@ -304,34 +307,31 @@ export default function PrivacyPage() {
               </Paragraph>
             </Section>
 
-            <Section id="contact" title="10. Contact Us">
+            <Section id="contact">
               <Paragraph>
                 For privacy questions, requests, or concerns about Capann, contact:
               </Paragraph>
-              <dl className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-8 sm:gap-y-4 mt-6 mb-0 p-6 rounded-3xl bg-panel border border-white/10 text-[15px]">
+              <dl className="grid gap-4 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-8 sm:gap-y-4 mt-6 mb-0 p-6 rounded-3xl bg-panel border border-line text-[15px]">
                 <dt className="text-muted">Developer</dt>
-                <dd className="m-0 text-paper font-medium sm:mt-0">Duowork</dd>
+                <dd className="m-0 text-fg font-medium sm:mt-0">Duowork</dd>
                 <dt className="text-muted">Website</dt>
                 <dd className="m-0">
-                  <a href="https://duowork.tech" className="text-draw hover:text-draw-hover transition-colors">duowork.tech</a>
+                  <a href="https://duowork.tech" className="text-accent hover:text-fg transition-colors">duowork.tech</a>
                 </dd>
                 <dt className="text-muted">Privacy contact</dt>
                 <dd className="m-0">
-                  <a href="mailto:reach@duowork.tech" className="text-draw hover:text-draw-hover transition-colors">reach@duowork.tech</a>
+                  <a href="mailto:reach@duowork.tech" className="text-accent hover:text-fg transition-colors">reach@duowork.tech</a>
                 </dd>
               </dl>
             </Section>
 
-            <div className="mt-14 pt-8 border-t border-white/10">
-              <p className="m-0 text-[14px] text-muted">Questions about how Capann handles your information?</p>
-              <div className="flex flex-wrap gap-3 mt-4">
-                <a href="mailto:reach@duowork.tech" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-paper text-ink text-[14px] font-medium hover:bg-white transition-colors">
-                  Email Duowork
+            <div className="mt-14 pt-8 border-t border-line">
+              <p className="m-0 text-[15px] text-muted">
+                Questions about how Capann handles your information?{' '}
+                <a href="mailto:reach@duowork.tech" className="text-fg underline decoration-fg/30 underline-offset-[5px] hover:decoration-fg transition-colors">
+                  Email reach@duowork.tech
                 </a>
-                <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/15 text-paper text-[14px] hover:bg-elevated transition-colors">
-                  Back to Capann
-                </Link>
-              </div>
+              </p>
             </div>
           </div>
         </div>
