@@ -9,7 +9,8 @@
     "postbuild": "node scripts/copy-404.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
-    "typecheck": "tsc -p tsconfig.json"
+    "typecheck": "tsc -p tsconfig.json",
+    "capture:product": "node scripts/capture-product.mjs"
   },
   "dependencies": {
     "@capann/api-client": "*",
@@ -26,6 +27,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "oxlint": "^1.88.0",
+    "playwright": "1.64.1",
     "typescript": "^5.6.3",
     "vite": "^8.3.4"
   }

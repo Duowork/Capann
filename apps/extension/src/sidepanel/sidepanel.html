@@ -46,10 +46,15 @@
         accent-color: var(--accent-violet);
         cursor: pointer;
       }
+      dialog::backdrop {
+        background: rgba(10, 10, 12, 0.72);
+        backdrop-filter: blur(4px);
+      }
+      dialog[open] { animation: fade-in 180ms var(--ease-morph) both; }
       .pop { animation: pop 320ms var(--ease-morph) both; }
       .row { animation: fade-in 180ms var(--ease-morph) both; }
       @media (prefers-reduced-motion: reduce) {
-        .pop, .row { animation: none; }
+        .pop, .row, dialog[open] { animation: none; }
       }
     </style>
   </head>

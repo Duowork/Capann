@@ -18,8 +18,9 @@ This repository is an npm-workspaces monorepo:
 
 ## Features
 
-Annotation, screenshots, and instant tab recording are **free**. Premium adds shareable links;
-a browser-AI layer is planned.
+Annotation, screenshots, and instant tab recording are **free**. Premium (a paid account) adds
+shareable links with playback, marks that scroll with the page, and screenshot styling; a
+browser-AI layer is planned.
 
 ### Mark screen
 
@@ -34,19 +35,19 @@ a browser-AI layer is planned.
 - **Spotlight** — dims everything except a soft circle around the cursor, without blocking clicks.
 - **Zoom lens** — a round magnifier that follows the cursor (1.5× / 2× / 3×, small / medium / large), without blocking clicks.
 - **Eraser** — remove individual marks.
-- **Screenshot** — drag over an area to capture it, then mark it up and frame it (below).
+- **Screenshot** — drag over an area to capture it, then mark it up (and, with Premium, frame it; below).
 - Hover a tool to see its name and what it does in the panel header; the header shows the active tool otherwise.
 - Undo / redo, duplicate (`Ctrl/Cmd+D`), delete (`Delete` / `Backspace`).
 - Countdown timer (5 / 10 / 15 min) and Screen / Blackout / Whiteout mask.
 - **Save PNG** — captures the tab composited with your annotations.
-- Annotations scroll with the page (window scrolling; apps that scroll an inner panel keep them fixed).
+- With Premium, annotations scroll with the page (window scrolling; apps that scroll an inner panel keep them fixed). Without it they stay fixed on screen.
 - Per-tab persistence: annotations survive tab switches and reloads until you hit Clear.
 
 ### Screenshot (in Mark screen)
 
 - Pick the **Screenshot** tool in the Mark screen panel, then drag a box over the page (or take the whole visible area); marks already on the page come along.
 - Mark it up with the same tools on the frozen image. Nothing touches the page's own annotations.
-- **Style** opens the side panel: a minimal background (soft solids, quiet gradients, a custom color, or none), padding, rounded corners, shadow, and border. The frame updates live. These controls appear only while a screenshot is open.
+- **Style** (Premium) opens the side panel: a minimal background (soft solids, quiet gradients, a custom color, or none), padding, rounded corners, shadow, and border. The frame updates live. These controls appear only while a screenshot is open. Without Premium, screenshots are saved with no frame.
 - **Copy** to the clipboard or **Save** a PNG, at full resolution.
 
 ### Record
@@ -56,13 +57,22 @@ a browser-AI layer is planned.
 - A recording chip on the left edge (stop & save, timer, pause / resume, discard) and the camera bubble at the bottom right stay visible and are part of the recording.
 - Missing camera, microphone, or tab audio never blocks a recording; a one-time grant page handles device permissions.
 
-### Share (Premium)
+### Premium
+
+A paid account in the premium build adds:
+
+- **Shareable links** for recordings, with **playback**: **Play** on a link opens it in a player right there (the side panel's Links tab, or the website's links page).
+- **Marks that scroll with the page** (otherwise they stay fixed on screen; upgrading mid-session doesn't move them).
+- **Screenshot styling** (otherwise screenshots have no frame).
+- Later, a **browser-AI layer**: page and annotated-page descriptions, playback transcripts, and summaries with a call to action.
+
+#### Share
 
 - **Sign in with email** from the Record view — no password. The emailed link opens the website, which hands the session to the extension.
 - **Upgrade** opens Bachs checkout for the signed-in email; the panel picks up the new plan when you return.
 - When a paid user stops a recording, it **uploads and the link is copied** to the clipboard. A dialog asks whether to also keep the `.webm` (with "Don't ask again"; change it later under **Keep a copy**).
 - A failed upload always saves the file locally, so a recording is never lost.
-- **My links** opens the side panel's Links tab: every live link with Copy, Open, and a countdown to its 7-day expiry, plus "Lost a link?" email recovery.
+- **My links** opens the side panel's Links tab: every live link with Play, Copy, Open, and a countdown to its 7-day expiry, plus "Lost a link?" email recovery.
 - The free build shows one link to the pricing page instead, and makes no network calls.
 
 ## Activation and shortcuts
@@ -90,15 +100,15 @@ code; they differ only in `capann.config.json`.
 |---|---|---|
 | `dev` | `premium` by default, switchable | Everything; switch editions at build time |
 | `free` | `free` | Annotation, screenshots, and recording |
-| `premium` | `premium` | Free features + Premium (browser AI, shareable links) |
+| `premium` | `premium` | Free features + Premium (links with playback, scrolling marks, screenshot styling; browser AI later) |
 
 Work and test on `dev`, then merge `dev` into `free` and `premium`. Never edit
 the edition in `capann.config.json` on `dev` and never hardcode an edition in
 source — use the edition build commands below. The gate (`PREMIUM_ENABLED`)
-lives in `apps/extension/src/shared/features.ts`. The premium build adds the account row, share
-flow, and the side panel's Links tab, and its manifest adds
-`externally_connectable` for the website; the free manifest is `manifest.json`
-unchanged (the side panel, with its Screenshot tab, is in both).
+lives in `apps/extension/src/shared/features.ts`, with `premiumActive(account)` for
+features that need a paid account. The premium build adds the account row, share
+flow, and the side panel (Screenshot style and Links), and its manifest adds
+`externally_connectable` for the website; the free manifest drops the side panel.
 
 ## Build
 
@@ -195,7 +205,7 @@ src/content/             Content script (React, Shadow DOM)
 src/offscreen/           Offscreen recorder: composition, audio mixing, local WebM
   share.ts, uploader.ts    Premium share jobs and the single/multipart uploader
 src/permissions/         One-time camera/microphone grant page
-src/sidepanel/           Side panel: Screenshot style (every build), Links (Premium)
+src/sidepanel/           Side panel (premium build): Screenshot style, Links with playback
 src/shared/
   types.ts                 Annotation types and the extension's message contracts
   features.ts              Edition gate (PREMIUM_ENABLED), API and site URLs

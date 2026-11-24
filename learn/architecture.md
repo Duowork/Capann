@@ -32,11 +32,11 @@ Capann is a Manifest V3 Chrome extension. The service worker handles extension l
 - `src/content/screenshot.tsx`: the Screenshot workflow's area selector, framed stage, and export (see [Screenshots](screenshot.md)).
 - `src/content/page-space.ts`: page-coordinate helpers and canvas transforms that make annotations scroll with the page (see [Canvas and memory](canvas.md)), plus the image space used while a screenshot is edited.
 - `src/shared/screenshot-style.ts`: the screenshot frame (presets, storage, layout, `drawFrame`), shared by the page and the side panel.
-- `src/sidepanel/`: Chrome's side panel, in every build. Its Screenshot tab edits the frame style; the premium build adds a Links tab. `src/background/side-panel.ts` opens it on the requested tab.
+- `src/sidepanel/`: Chrome's side panel, premium build only. Its Screenshot tab edits the frame style (or offers sign-in and upgrade without Premium); its Links tab lists links and plays them back (`player-dialog.tsx`). `src/background/side-panel.ts` opens it on the requested tab.
 - `src/background/service-worker.ts`: action handling, shortcuts, capture stream IDs, downloads, and status routing.
 - `src/offscreen/recorder.ts`: tab/camera/microphone capture, composition, audio routing, and WebM lifecycle.
 - `src/permissions/permissions.ts`: one-time camera/microphone grant page, because offscreen documents cannot prompt.
-- Premium (premium build only): `src/background/premium.ts` (account, website hand-off, share-status relay), `src/content/premium-panel.tsx` (Record view account row, share card, copy dialog), `src/offscreen/share.ts` and `uploader.ts` (upload jobs), the side panel's Links tab (`src/sidepanel/links-panel.tsx`), and `src/shared/premium/` (API client, `chrome.storage.local` state). See [Premium share links](premium.md).
+- Premium (premium build only): `src/background/premium.ts` (account, website hand-off, share-status relay), `src/content/premium-panel.tsx` (account row and sign-in/upgrade, share card, copy dialog, Mark screen's scroll nudge), `src/offscreen/share.ts` and `uploader.ts` (upload jobs), the side panel's Links tab (`src/sidepanel/links-panel.tsx`), and `src/shared/premium/` (API client, `chrome.storage.local` state). See [Premium share links](premium.md).
 
 Chrome pages such as `chrome://` are protected and cannot be captured or receive the content overlay. If action invocation or tab access has expired, click the Capann action on the target website again before starting capture. The action title/badge reports unavailable pages and capture errors.
 

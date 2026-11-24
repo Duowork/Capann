@@ -1,12 +1,14 @@
 /**
- * sidepanel.tsx — Capann in Chrome's side panel (every edition).
+ * sidepanel.tsx — Capann in Chrome's side panel (premium build only; the free
+ * build's manifest has no side panel).
  *
  * Tabs keep the panel's jobs apart:
  *
- * - Screenshot: the screenshot frame style (style-panel.tsx), every edition
- * - Links: Premium's shared recordings (links-panel.tsx), premium build only
+ * - Screenshot: the screenshot frame style (style-panel.tsx), or sign-in and
+ *   upgrade without a paid account (styling is Premium)
+ * - Links: shared recordings with playback (links-panel.tsx)
  *
- * The free build has one tab, so it shows no tab bar. Which tab opens is
+ * Which tab opens is
  * decided by whoever opened the panel ("Style" or "My links"): the worker
  * writes it to `chrome.storage.session` (background/side-panel.ts), and the
  * panel follows that key while open. When Chrome won't open the side panel,
@@ -116,7 +118,11 @@ function SidePanelApp() {
         className="row"
         style={{ marginTop: 18 }}
       >
-        {PREMIUM_ENABLED && section === "links" ? <LinksPanel /> : <ScreenshotStylePanel />}
+        {PREMIUM_ENABLED && section === "links" ? (
+          <LinksPanel />
+        ) : (
+          <ScreenshotStylePanel onOpenLinks={() => choose("links")} />
+        )}
       </section>
     </main>
   );

@@ -110,8 +110,17 @@ export type AnnotationObject =
   | TextAnnotation
   | FreeTextAnnotation;
 
+/**
+ * Where a tab's marks live: "page" scrolls with the page (Premium), "screen"
+ * stays fixed on screen. Kept per document, so a lapsed subscription never
+ * moves marks already drawn; absent means "page" (documents saved before the
+ * field existed).
+ */
+export type AnnotationSpace = "page" | "screen";
+
 export interface TabAnnotationState {
   objects: AnnotationObject[];
+  space?: AnnotationSpace;
 }
 
 export interface RecordOptions {

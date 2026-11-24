@@ -1,6 +1,6 @@
 # Annotation data and rendering
 
-Annotations are plain objects described by the `AnnotationObject` union in `src/shared/types.ts`. Pencil and highlighter marks contain point arrays; arrows and shapes contain start/end points; comments (`text`) contain the point their tail aims at and the note's text; free text (`freetext`) contains a top-left position, the text, a font size, and a font. The same data is serialized to session storage and used for drawing, export, hit testing, and editing. All positions are **page coordinates** (CSS pixels from the document's top-left), so annotations scroll with the page; see [Canvas and memory](canvas.md#how-scrolling-works).
+Annotations are plain objects described by the `AnnotationObject` union in `src/shared/types.ts`. Pencil and highlighter marks contain point arrays; arrows and shapes contain start/end points; comments (`text`) contain the point their tail aims at and the note's text; free text (`freetext`) contains a top-left position, the text, a font size, and a font. The same data is serialized to session storage and used for drawing, export, hit testing, and editing. All positions are **page coordinates** (CSS pixels from the document's top-left), so annotations scroll with the page, or, without Premium, screen coordinates, so they stay fixed on screen; the tab's document records which (`TabAnnotationState.space`). See [Canvas and memory](canvas.md#how-scrolling-works).
 
 ## Drawing and editing flow
 

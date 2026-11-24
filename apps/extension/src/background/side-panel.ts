@@ -1,8 +1,9 @@
 /**
  * Opens Chrome's side panel on one of its tabs (`SidePanelSection`).
  *
- * The side panel ships in both editions: Screenshot style in every build,
- * plus Links in Premium. The requested tab is written to
+ * The side panel ships in the premium build only (screenshot styling and
+ * Links are both Premium; the free manifest has no side panel). The requested
+ * tab is written to
  * `chrome.storage.session`, which the panel reads on load and follows while
  * open, so opening it from "Style" or "My links" lands on the right tab even
  * if it was already open.

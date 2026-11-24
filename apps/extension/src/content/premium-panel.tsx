@@ -1,13 +1,14 @@
 /**
  * premium-panel.tsx
  *
- * Premium pieces of the Record view: the account row, the share card (upload
- * progress, link, auto-copy), the "Save a copy?" dialog, and the free build's
- * one teaser link.
+ * Premium pieces of the overlay: the account row (sign-in and upgrade; also
+ * used by the side panel's Screenshot tab), the share card (upload progress,
+ * link, auto-copy), the "Save a copy?" dialog, the Mark screen's scrolling
+ * nudge, and the free build's one teaser link.
  *
- * Recording-only: nothing here touches annotations or the capture-hide
- * invariant. The page never holds the session token; it asks the worker for an
- * `AccountSummary` and sends Premium actions as messages.
+ * Nothing here touches annotations or the capture-hide invariant. The page
+ * never holds the session token; it asks the worker for an `AccountSummary`
+ * and sends Premium actions as messages.
  *
  * Both hooks are always called (Rules of Hooks) and do nothing in the free
  * build, where `PREMIUM_ENABLED` is false.
@@ -252,7 +253,7 @@ const MUTED: CSSProperties = { margin: 0, color: "#8B8B93", fontSize: 11, lineHe
 /** Keep typed keys out of the page: sites bind single-letter shortcuts. */
 const isolateKeys = (event: ReactKeyboardEvent) => event.stopPropagation();
 
-/** Keyframes and focus rings used below; rendered once with the Record view. */
+/** Keyframes and focus rings used below; rendered once per view that uses them. */
 export function PremiumStyles() {
   return (
     <style>{`
@@ -383,12 +384,15 @@ export function AccountSection({
   onAccount,
   onRefresh,
   nudge,
+  onOpenLinks,
 }: {
   account: AccountSummary | null;
   onAccount: (account: AccountSummary) => void;
   onRefresh: () => void;
   /** A recording was just saved as a file; suggest a link next time. */
   nudge: boolean;
+  /** "My links". Defaults to opening the side panel's Links tab. */
+  onOpenLinks?: () => void;
 }) {
   const [signIn, setSignIn] = useState<SignInState>({ step: "closed" });
   const [email, setEmail] = useState("");
@@ -432,7 +436,7 @@ export function AccountSection({
     if (isAccount(next)) onAccount(next);
   };
 
-  const openLinks = () => void ask({ kind: "premium-open-links" });
+  const openLinks = onOpenLinks ?? (() => void ask({ kind: "premium-open-links" }));
 
   if (!account) return null;
 
@@ -453,10 +457,11 @@ export function AccountSection({
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13 }}>
           <LinkSimpleIcon size={16} weight="bold" color="#A78BFA" />
-          <strong style={{ fontWeight: 500 }}>Share recordings as links</strong>
+          <strong style={{ fontWeight: 500 }}>Capann Premium</strong>
         </div>
         <p style={{ ...MUTED, margin: "4px 0 10px" }}>
-          Premium uploads each recording and copies a link that works for {RETENTION_DAYS} days.
+          Share recordings as links that work for {RETENTION_DAYS} days and play back right
+          away, keep marks on the page as it scrolls, and style screenshots.
         </p>
         {signIn.step === "sent" ? (
           <div role="status">
@@ -925,6 +930,86 @@ export function CopyDialog({
       {remember && (
         <p style={{ ...MUTED, marginTop: 8 }}>
           You can change this under "Keep a copy" below.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Mark screen ───────────────────────────────────────────────────────────────
+
+/**
+ * Shown in Mark screen once marks are on screen and the page scrolls, for an
+ * account without Premium: marks stay fixed on screen unless they're Premium.
+ * Signed in, it opens checkout; signed out, it goes to the Record view, where
+ * sign-in lives. Premium build only (the free build keeps its single teaser).
+ */
+export function ScrollNudge({
+  account,
+  onGetPremium,
+  onDismiss,
+}: {
+  account: AccountSummary | null;
+  onGetPremium: () => void;
+  onDismiss: () => void;
+}) {
+  const [upgrading, setUpgrading] = useState(false);
+  const [error, setError] = useState("");
+  if (!PREMIUM_ENABLED || !account) return null;
+
+  const upgrade = async () => {
+    setUpgrading(true);
+    setError("");
+    const result = await ask<PremiumActionResult>({ kind: "premium-upgrade" });
+    setUpgrading(false);
+    if (!result?.ok) setError(result ? waitMessage(result) : "Couldn't open checkout.");
+  };
+
+  return (
+    <div
+      className="capann-premium"
+      role="note"
+      style={{
+        marginTop: 12,
+        padding: "10px 12px",
+        borderRadius: 14,
+        border: "1px solid rgba(167,139,250,0.35)",
+        background: "rgba(167,139,250,0.08)",
+        font: `400 12px/1.45 ${FONT}`,
+        color: "#F5F5F7",
+      }}
+    >
+      <PremiumStyles />
+      <p style={{ margin: 0 }}>Your marks stay put when the page scrolls.</p>
+      <p style={{ ...MUTED, margin: "2px 0 8px" }}>With Premium, they scroll with the page.</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <button
+          type="button"
+          disabled={upgrading}
+          onClick={account.signedIn ? () => void upgrade() : onGetPremium}
+          style={{
+            ...SMALL_BUTTON,
+            background: "#A78BFA",
+            border: 0,
+            color: "#17131F",
+            fontWeight: 700,
+            opacity: upgrading ? 0.65 : 1,
+            cursor: upgrading ? "wait" : "pointer",
+          }}
+        >
+          {account.signedIn
+            ? upgrading
+              ? "Opening checkout…"
+              : `Upgrade · ${PREMIUM_PRICE_LABEL}`
+            : "Get Premium"}
+        </button>
+        <button type="button" style={{ ...TEXT_BUTTON, color: "#8B8B93" }} onClick={onDismiss}>
+          Not now
+        </button>
+      </div>
+      {error && (
+        <p role="alert" style={{ ...MUTED, color: "#FCA5A5", marginTop: 6 }}>
+          {error}
         </p>
       )}
     </div>

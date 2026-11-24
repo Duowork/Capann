@@ -96,6 +96,23 @@ Annotations move with the page without the canvases growing. The pieces live in
    `clearRect(0, 0, w, h)` would clear the wrong region. `clearCanvas(ctx)`
    resets to the identity transform and clears every pixel.
 
+**Screen space (without Premium).** Marks that scroll with the page are a
+Premium feature. Without it, the page's document is in *screen space*:
+`setScrollWithPage(false)` makes `pageScroll()` return 0,0, so `pagePoint`,
+`screenPoint`, and `setPageTransform` all ignore the scroll and marks stay where
+they were drawn while the page moves underneath (the scroll listener skips the
+redraw, since nothing moves). Every mapping goes through `pageScroll()`; nothing
+reads `window.scrollX/Y` directly except the zoom lens snapshot, which is a
+picture of the page and follows the real scroll.
+
+The space belongs to the document and is saved with it
+(`TabAnnotationState.space`; absent means page space). `OverlayApp` picks it:
+with Premium, a screen-space document moves into page space at once, every
+object and history entry shifted by the current scroll so nothing jumps;
+without Premium, a page-space document keeps scrolling until it is empty
+(cleared, or never drawn), so a lapsed subscription never strands marks off
+screen. Comment placement uses the screen as its viewport in screen space.
+
 Some things stay in screen space on purpose: the laser trail, spotlight, and
 zoom lens (`setScreenTransform`), the screen mask, and the panel. The comment composer is a
 `position: fixed` DOM element, so it is repositioned (layout in page

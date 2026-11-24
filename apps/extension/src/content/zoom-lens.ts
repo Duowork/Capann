@@ -13,6 +13,7 @@
  */
 
 import type { AnnotationObject, Point } from "../shared/types";
+import { pagePoint } from "./page-space";
 import { drawAnnotation } from "./render";
 
 export const ZOOM_LEVELS = [1.5, 2, 3] as const;
@@ -44,9 +45,8 @@ export function drawLens(
 ): void {
   const dpr = window.devicePixelRatio || 1;
   const { x: cx, y: cy } = cursor;
-  // Page point under the cursor: the lens's fixed point.
-  const px = cx + window.scrollX;
-  const py = cy + window.scrollY;
+  // Annotation point under the cursor: the lens's fixed point for the marks.
+  const { x: px, y: py } = pagePoint(cx, cy);
 
   ctx.save();
   ctx.beginPath();
@@ -63,9 +63,11 @@ export function drawLens(
   ctx.save();
   ctx.clip();
   if (snapshot) {
+    // The snapshot is of the page, so it follows the real window scroll
+    // whichever space the marks are in.
     const { ratio } = snapshot;
-    const sx = (px - snapshot.scrollX) * ratio;
-    const sy = (py - snapshot.scrollY) * ratio;
+    const sx = (cx + window.scrollX - snapshot.scrollX) * ratio;
+    const sy = (cy + window.scrollY - snapshot.scrollY) * ratio;
     const half = (radius / zoom) * ratio;
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(
